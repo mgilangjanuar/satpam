@@ -9,6 +9,15 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@emotion/react": "^11.10.6",
+    "@emotion/server": "^11.10.0",
+    "@mantine/core": "^6.0.6",
+    "@mantine/dropzone": "^6.0.6",
+    "@mantine/form": "^6.0.6",
+    "@mantine/hooks": "^6.0.6",
+    "@mantine/next": "^6.0.6",
+    "@mantine/notifications": "^6.0.6",
+    "@tabler/icons-react": "^2.14.0",
     "@types/node": "18.15.11",
     "@types/react": "18.0.33",
     "@types/react-dom": "18.0.11",
@@ -17,6 +26,11 @@
     "next": "13.3.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
+    "react-qr-scanner": "^1.0.0-alpha.11",
+    "totp-generator": "^0.0.14",
     "typescript": "5.0.3"
+  },
+  "devDependencies": {
+    "@types/totp-generator": "^0.0.5"
   }
 }
