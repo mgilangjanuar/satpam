@@ -1,0 +1,64 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                  String    @id     @default(nanoid())
+  email               String    @unique
+  password            String
+  name                String
+  verificationToken   String?   @map("verification_token")
+  forgotPasswordToken String?   @map("forgot_password_token")
+  createdAt           DateTime  @default(now())  @db.Timestamptz(3) @map("created_at")
+  updatedAt           DateTime  @updatedAt       @db.Timestamptz(3) @map("updated_at")
+  deletedAt           DateTime? @db.Timestamptz(3) @map("deleted_at")
+  services            Service[]
+
+  @@map("users")
+}
+
+model Service {
+  id              String   @id     @default(nanoid())
+  host            String
+  url             String
+  userId          String   @map("user_id")
+  createdAt       DateTime @default(now())  @db.Timestamptz(3) @map("created_at")
+  updatedAt       DateTime @updatedAt       @db.Timestamptz(3) @map("updated_at")
+  user            User     @relation(fields: [userId], references: [id])
+  passwords       Password[]
+  authenticators  Authenticator[]
+
+  @@map("services")
+}
+
+model Password {
+  id        String   @id     @default(nanoid())
+  username  String
+  password  String
+  serviceId String   @map("service_id")
+  createdAt DateTime @default(now())  @db.Timestamptz(3) @map("created_at")
+  updatedAt DateTime @updatedAt       @db.Timestamptz(3) @map("updated_at")
+  service   Service  @relation(fields: [serviceId], references: [id])
+
+  @@map("passwords")
+}
+
+model Authenticator {
+  id        String   @id     @default(nanoid())
+  name      String
+  secret    String
+  serviceId String   @map("service_id")
+  createdAt DateTime @default(now())  @db.Timestamptz(3) @map("created_at")
+  updatedAt DateTime @updatedAt       @db.Timestamptz(3) @map("updated_at")
+  service   Service  @relation(fields: [serviceId], references: [id])
+
+  @@map("authenticators")
+}

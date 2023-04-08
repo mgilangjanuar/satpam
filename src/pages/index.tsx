@@ -1,11 +1,5 @@
-import Head from 'next/head'
+import { Box } from '@mantine/core'
 
 export default function Home() {
-  return (
-    <>
-      <Head>
-        <title>Satpam | A secure and trusted password manager and 2FA</title>
-      </Head>
-    </>
-  )
+  return <Box></Box>
 }
