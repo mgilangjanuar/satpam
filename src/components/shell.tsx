@@ -1,4 +1,4 @@
-import { ActionIcon, AppShell, Burger, Group, Header, MediaQuery, Navbar, Stack, Text, ThemeIcon, Title, UnstyledButton, UnstyledButtonProps, rem, useMantineColorScheme } from '@mantine/core'
+import { ActionIcon, AppShell, Burger, Button, Group, Header, MediaQuery, Navbar, Stack, Text, ThemeIcon, Title, UnstyledButton, UnstyledButtonProps, rem, useMantineColorScheme } from '@mantine/core'
 import { IconMoon, IconSun } from '@tabler/icons-react'
 import Link, { LinkProps } from 'next/link'
 import { useRouter } from 'next/router'
@@ -45,9 +45,10 @@ function HeaderButtonLink(props: UnstyledButtonProps & LinkProps & { icon?: Reac
   </UnstyledButton>
 }
 
-export default function Shell({ children, menu }: { children: React.ReactNode, menu?: MenuItem[] }) {
+export default function Shell({ children, menu, menuHeader }: { children: React.ReactNode, menu?: MenuItem[], menuHeader?: MenuItem[] }) {
   const [opened, setOpened] = useState(false)
   const { colorScheme, toggleColorScheme } = useMantineColorScheme()
+  const location = useRouter()
 
   return <AppShell
     navbarOffsetBreakpoint="sm"
@@ -66,11 +67,37 @@ export default function Shell({ children, menu }: { children: React.ReactNode, m
               <Title order={2}>Satpam</Title>
             </UnstyledButton>
           </Group>
-          <ActionIcon onClick={() => toggleColorScheme()}>
-            <ThemeIcon variant="outline" radius="md">
-              {colorScheme === 'dark' ? <IconSun size={18} /> : <IconMoon size={18} />}
-            </ThemeIcon>
-          </ActionIcon>
+          <Group>
+            {menuHeader?.map((item, i) => {
+              const isActive = location.pathname.split('/').slice(0, 2).join('/') === item.href
+              if (item.element && isValidElement(item.element)) {
+                return item.element
+              } else if (item.href) {
+                return <Button
+                  key={i}
+                  variant="subtle"
+                  color={isActive ? 'blue' : 'gray'}
+                  component={Link}
+                  href={item.href}
+                  {...item.icon ? {
+                    leftIcon: <ThemeIcon
+                      variant="light"
+                      color={isActive ? "blue" : "gray"}>
+                      {item.icon }
+                    </ThemeIcon>
+                  } : {} }>
+                  <Text>{item.label}</Text>
+                </Button>
+              } else {
+                <></>
+              }
+            })}
+            <ActionIcon onClick={() => toggleColorScheme()}>
+              <ThemeIcon variant="outline" radius="md" color="gray">
+                {colorScheme === 'dark' ? <IconSun size={16} /> : <IconMoon size={16} />}
+              </ThemeIcon>
+            </ActionIcon>
+          </Group>
         </Group>
       </Stack>
     </Header>}
@@ -106,8 +133,12 @@ export default function Shell({ children, menu }: { children: React.ReactNode, m
 
 export const ShellContext = createContext<{
   menu: MenuItem[],
-  setMenu: (menu: MenuItem[]) => void
+  setMenu: (menu: MenuItem[]) => void,
+  menuHeader: MenuItem[],
+  setMenuHeader: (menu: MenuItem[]) => void
 }>({
   menu: [],
-  setMenu: () => {}
+  setMenu: () => {},
+  menuHeader: [],
+  setMenuHeader: () => {}
 })
