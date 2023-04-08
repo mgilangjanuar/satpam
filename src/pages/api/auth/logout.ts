@@ -1,4 +1,5 @@
 import { authorization } from '@/_middlewares/authorization'
+import { wrapper } from '@/_middlewares/wrapper'
 import { serialize } from 'cookie'
 import type { NextApiRequest, NextApiResponse } from 'next'
 
@@ -6,7 +7,7 @@ type Data = {
   error?: string
 }
 
-export default authorization(async (
+export default authorization(wrapper(async (
   req: NextApiRequest,
   res: NextApiResponse<Data>
 ) => {
@@ -22,4 +23,4 @@ export default authorization(async (
   }
 
   return res.status(405).json({ error: 'Method not allowed' })
-})
+}))

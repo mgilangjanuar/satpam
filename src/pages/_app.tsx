@@ -11,7 +11,7 @@ export default function App({ Component, pageProps }: AppProps) {
   const [colorScheme, setColorScheme] = useState<ColorScheme>('light')
   const [menu, setMenu] = useState<MenuItem[]>([])
   const [menuHeader, setMenuHeader] = useState<MenuItem[]>([
-    { label: 'Login', href: '/login' },
+    { label: 'Login', href: '/auth/login' },
   ])
 
   return <>

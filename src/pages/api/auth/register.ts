@@ -1,3 +1,4 @@
+import { wrapper } from '@/_middlewares/wrapper'
 import { prisma } from '@/lib/prisma'
 import { sendEmail } from '@/utils/sendEmail'
 import { genSaltSync, hashSync } from 'bcrypt'
@@ -8,7 +9,7 @@ type Data = {
   error?: string
 }
 
-export default async function handler(
+export default wrapper(async function handler(
   req: NextApiRequest,
   res: NextApiResponse<Data>
 ) {
@@ -38,4 +39,4 @@ export default async function handler(
   }
 
   return res.status(405).json({ error: 'Method not allowed' })
-}
+})

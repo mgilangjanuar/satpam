@@ -1,0 +1,71 @@
+import { f } from '@/lib/fetch'
+import { Button, Divider, Group, Paper, PasswordInput, Stack, Text, TextInput, Title, UnstyledButton, rem } from '@mantine/core'
+import { useForm } from '@mantine/form'
+import { showNotification } from '@mantine/notifications'
+import Link from 'next/link'
+
+interface LoginForm {
+  email: string,
+  password: string
+}
+
+export default function Login() {
+  const form = useForm<LoginForm>({
+    initialValues: {
+      email: '',
+      password: ''
+    }
+  })
+
+  const login = async (values: LoginForm) => {
+    try {
+      await f.post('/api/auth/login', values)
+      const me = await f.get('/api/auth/me')
+      console.log(me)
+    } catch (error: any) {
+      showNotification({
+        title: 'Error',
+        message: error.message,
+        color: 'red'
+      })
+    }
+  }
+
+  return <Stack mih={`calc(100vh - ${rem(92)})`} align="center" justify="center">
+    <Paper withBorder p="md" maw={480} w="100%">
+      <Title order={5}>Login</Title>
+      <Text mt="xs" mb="lg" color="dimmed">
+        Login to your account
+      </Text>
+      <form onSubmit={form.onSubmit(login)}>
+        <TextInput
+          label="Email"
+          type="email"
+          required
+          withAsterisk
+          {...form.getInputProps('email')} />
+        <PasswordInput
+          mt="md"
+          label="Password"
+          required
+          withAsterisk
+          {...form.getInputProps('password')} />
+        <Group position="apart" mt="md">
+          <Link href="/auth/forgot">
+            Forgot password?
+          </Link>
+          <Button type="submit">
+            Login
+          </Button>
+        </Group>
+        <Divider my="lg" />
+        <Group>
+          <Text>Don&apos;t have an account?</Text>
+          <Link href="/auth/register">
+            Register
+          </Link>
+        </Group>
+      </form>
+    </Paper>
+  </Stack>
+}
