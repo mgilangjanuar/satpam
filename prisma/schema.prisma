@@ -55,6 +55,9 @@ model Authenticator {
   id        String   @id     @default(nanoid())
   name      String
   secret    String
+  digits    Int      @default(6)
+  period    Int      @default(30)
+  algorithm String   @default("SHA-1")
   serviceId String   @map("service_id")
   createdAt DateTime @default(now())  @db.Timestamptz(3) @map("created_at")
   updatedAt DateTime @updatedAt       @db.Timestamptz(3) @map("updated_at")

@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "authenticators" ADD COLUMN     "algorithm" TEXT NOT NULL DEFAULT 'SHA-1',
+ADD COLUMN     "digits" INTEGER NOT NULL DEFAULT 6,
+ADD COLUMN     "period" INTEGER NOT NULL DEFAULT 30;
