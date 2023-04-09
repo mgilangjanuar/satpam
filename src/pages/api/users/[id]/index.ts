@@ -20,6 +20,8 @@ export default authorization(wrapper(async (
         name: true,
         email: true,
         role: true,
+        verificationToken: true,
+        forgotPasswordToken: true,
         createdAt: true,
         updatedAt: true,
         deletedAt: true

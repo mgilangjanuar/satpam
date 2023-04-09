@@ -1,10 +1,11 @@
 import { f } from '@/lib/fetch'
-import { ActionIcon, Container, Group, JsonInput, ScrollArea, Stack, Table, Title } from '@mantine/core'
+import { ActionIcon, Col, Container, Grid, Group, JsonInput, ScrollArea, Stack, Table, Title } from '@mantine/core'
 import { showNotification } from '@mantine/notifications'
 import { User } from '@prisma/client'
 import { IconArrowLeft, IconArrowRight, IconPlayerPlayFilled } from '@tabler/icons-react'
 import dayjs from 'dayjs'
 import dJSON from 'dirty-json'
+import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { useCallback, useEffect, useState } from 'react'
 
@@ -58,40 +59,44 @@ export default function Users() {
     setFiltersRaw(JSON.stringify(filters, null, 2))
   }, [filters])
 
-  return <Container>
+  return <Container fluid>
     <Title order={3}>Users Management</Title>
-    <Group align="end" mt="md">
-      <JsonInput
-        spellCheck={false}
-        label="Filters"
-        style={{ flexGrow: 1 }}
-        variant="filled"
-        value={filtersRaw}
-        onChange={setFiltersRaw}
-        autoCorrect="off"
-        autoCapitalize="off"
-        autosize
-        minRows={5}
-        maxRows={10}
-        formatOnBlur={true}
-        serialize={val => JSON.stringify(val, null, 2)}
-        deserialize={dJSON.parse} />
-      <Stack>
-        <ActionIcon loading={filtersLoading} color="green" variant="light" onClick={() => {
-          try {
-            setFilters(dJSON.parse(filtersRaw))
-          } catch (error: any) {
-            showNotification({
-              title: 'Error',
-              message: error.message,
-              color: 'red'
-            })
-          }
-        }}>
-          <IconPlayerPlayFilled size={18} />
-        </ActionIcon>
-      </Stack>
-    </Group>
+    <Grid>
+      <Col span={12} md={6}>
+        <Group align="end" mt="md">
+          <JsonInput
+            spellCheck={false}
+            label="Filters"
+            style={{ flexGrow: 1 }}
+            variant="filled"
+            value={filtersRaw}
+            onChange={setFiltersRaw}
+            autoCorrect="off"
+            autoCapitalize="off"
+            autosize
+            minRows={5}
+            maxRows={10}
+            formatOnBlur={true}
+            serialize={val => JSON.stringify(val, null, 2)}
+            deserialize={dJSON.parse} />
+          <Stack>
+            <ActionIcon loading={filtersLoading} color="green" variant="light" onClick={() => {
+              try {
+                setFilters(dJSON.parse(filtersRaw))
+              } catch (error: any) {
+                showNotification({
+                  title: 'Error',
+                  message: error.message,
+                  color: 'red'
+                })
+              }
+            }}>
+              <IconPlayerPlayFilled size={18} />
+            </ActionIcon>
+          </Stack>
+        </Group>
+      </Col>
+    </Grid>
     <Group mt="sm">
       <ActionIcon variant="subtle" disabled={filters.skip === 0} onClick={() => {
         setFilters(filters => ({ ...filters, skip: filters.skip - filters.take }))
@@ -118,7 +123,11 @@ export default function Users() {
         </thead>
         <tbody>
           {users?.map(user => <tr key={user.id}>
-            <td>{user.id}</td>
+            <td>
+              <Link href={`/_admin/users/${user.id}`}>
+                {user.id}
+              </Link>
+            </td>
             <td style={{ whiteSpace: 'nowrap' }}>{user.name}</td>
             <td style={{ whiteSpace: 'nowrap' }}>{user.email}</td>
             <td style={{ whiteSpace: 'nowrap' }}>{user.role}</td>
