@@ -123,7 +123,7 @@ export default function Users() {
         </thead>
         <tbody>
           {users?.map(user => <tr key={user.id}>
-            <td>
+            <td style={{ whiteSpace: 'nowrap' }}>
               <Link href={`/_admin/users/${user.id}`}>
                 {user.id}
               </Link>
