@@ -23,7 +23,7 @@ cd satpam
 yarn
 ```
 
-3. Create [`.env.local`](#Environment%20Variables) file
+3. Create [`.env.local`](#environment-variables) file
 
 ```bash
 cp .env.example .env.local
@@ -53,3 +53,7 @@ yarn dev
 | EMAIL_FROM | Email sender | - | Yes |
 | BASE_URL | Base URL | - | Yes |
 | SECRET_KEY | Secret key | - | Yes |
+
+## License
+
+[MIT License](./LICENSE.md)
