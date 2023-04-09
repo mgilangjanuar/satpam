@@ -57,6 +57,7 @@ export default wrapper(async function handler(
       ), {
         maxAge: 60 * 60 * 15, // 15 hours
         httpOnly: true,
+        path: '/',
         expires: new Date(Date.now() + 60 * 60 * 15 * 1000), // 15 hours
       }
     ))

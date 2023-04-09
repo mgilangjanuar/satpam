@@ -1,6 +1,8 @@
 class Fetch {
   async get(url: string) {
-    const response = await fetch(url)
+    const response = await fetch(url, {
+      credentials: 'same-origin'
+    })
     if (!response.ok) {
       const data = await response.json()
       throw new Error(data.error || data)
@@ -11,6 +13,7 @@ class Fetch {
   async post(url: string, body: any) {
     const response = await fetch(url, {
       method: 'POST',
+      credentials: 'same-origin',
       headers: {
         'Content-Type': 'application/json'
       },
@@ -26,6 +29,7 @@ class Fetch {
   async patch(url: string, body: any) {
     const response = await fetch(url, {
       method: 'PATCH',
+      credentials: 'same-origin',
       headers: {
         'Content-Type': 'application/json'
       },
@@ -40,7 +44,8 @@ class Fetch {
 
   async delete(url: string) {
     const response = await fetch(url, {
-      method: 'DELETE'
+      method: 'DELETE',
+      credentials: 'same-origin',
     })
     if (!response.ok) {
       const data = await response.json()

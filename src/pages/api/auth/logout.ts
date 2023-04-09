@@ -15,6 +15,7 @@ export default authorization(wrapper(async (
     res.setHeader('Set-Cookie', serialize(
       'authorized_token', '', {
         maxAge: 0,
+        path: '/',
         httpOnly: true,
         expires: new Date()
       }
