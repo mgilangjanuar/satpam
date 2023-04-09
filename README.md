@@ -29,13 +29,19 @@ yarn
 cp .env.example .env.local
 ```
 
-Edit the `.env.local` file with your own configuration.
+Edit the `.env.local` file with your configuration.
 
 4. Build and run the server
 
 ```bash
 yarn build && \
 yarn start
+```
+
+Or, you can run the server in development mode
+
+```bash
+yarn dev
 ```
 
 ## Environment Variables
