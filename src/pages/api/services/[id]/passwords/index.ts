@@ -1,12 +1,13 @@
-import { NextApiRequestWithUser, UserAuthSafe, authorization } from '@/_middlewares/authorization'
+import { NextApiRequestWithUser, authorization } from '@/_middlewares/authorization'
 import { wrapper } from '@/_middlewares/wrapper'
 import { prisma } from '@/lib/prisma'
 import { parseQuery } from '@/utils/parseQuery'
-import { Service } from '@prisma/client'
+import { Password } from '@prisma/client'
+import NodeRSA from 'encrypt-rsa'
 import type { NextApiResponse } from 'next'
 
 type Data = {
-  services?: Service[],
+  passwords?: Password[],
   error?: string
 }
 
@@ -18,7 +19,7 @@ export default authorization(wrapper(async (
     const { _orderBy, _skip, _take, ...query } = req.query
 
     // build orderBy
-    let sort: { [Property in keyof Service]?: 'asc' | 'desc' } = { createdAt: 'desc' }
+    let sort: { [Property in keyof Password]?: 'asc' | 'desc' } = { createdAt: 'desc' }
     if (_orderBy) {
       const { _orderBy: order } = parseQuery(req.query, ['_orderBy'])
       const [key, value] = order.split(':')
@@ -34,31 +35,50 @@ export default authorization(wrapper(async (
       take = Number(t) || 10
     }
 
-    const services = await prisma.service.findMany({
+    const passwords = await prisma.password.findMany({
       orderBy: sort,
       skip,
       take,
       where: {
         ...req.body?._search ?? parseQuery(query),
-        userId: req.user?.id as string
+        serviceId: req.query.id as string
       }
     })
 
-    return res.status(200).json({ services })
+    return res.status(200).json({ passwords })
   }
 
   if (req.method === 'POST') {
-    const { url } = req.body
+    const { username, password } = req.body
 
-    if (!url) {
-      return res.status(400).json({ error: 'Missing url' })
+    if (!username || !password) {
+      return res.status(400).json({ error: 'Missing username or password' })
     }
 
-    await prisma.service.create({
+    const user = await prisma.user.findUnique({
+      select: {
+        publicKey: true
+      },
+      where: {
+        id: req.user?.id as string
+      }
+    })
+    if (!user) {
+      return res.status(400).json({ error: 'User not found' })
+    }
+
+    const rsa = new NodeRSA()
+    await prisma.password.create({
       data: {
-        url: url,
-        host: new URL(url).host,
-        userId: req.user?.id as string
+        username: rsa.encryptStringWithRsaPublicKey({
+          text: username,
+          publicKey: user.publicKey
+        }),
+        password: rsa.encryptStringWithRsaPublicKey({
+          text: password,
+          publicKey: user.publicKey
+        }),
+        serviceId: req.query.id as string
       }
     })
 
