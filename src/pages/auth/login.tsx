@@ -20,8 +20,11 @@ export default function Login() {
   const login = async (values: LoginForm) => {
     try {
       await f.post('/api/auth/login', values)
-      const me = await f.get('/api/auth/me')
-      console.log(me)
+      showNotification({
+        title: 'Success',
+        message: 'You have been logged in',
+        color: 'teal'
+      })
     } catch (error: any) {
       showNotification({
         title: 'Error',
@@ -33,8 +36,8 @@ export default function Login() {
 
   return <Stack mih={`calc(100vh - ${rem(92)})`} align="center" justify="center">
     <Paper withBorder p="md" maw={480} w="100%">
-      <Title order={5}>Login</Title>
-      <Text mt="xs" mb="lg" color="dimmed">
+      <Title order={2}>Login</Title>
+      <Text mb="lg" mt="xs" color="dimmed">
         Login to your account
       </Text>
       <form onSubmit={form.onSubmit(login)}>
@@ -58,7 +61,7 @@ export default function Login() {
             Login
           </Button>
         </Group>
-        <Divider my="lg" />
+        <Divider my="lg" label="Or" labelPosition="center" />
         <Group>
           <Text>Don&apos;t have an account?</Text>
           <Link href="/auth/register">
