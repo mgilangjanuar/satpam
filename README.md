@@ -12,37 +12,37 @@ Satpam is a secure and trusted password manager and 2FA. Built with [Next.js](ht
 
 1. Clone the repository
 
-```bash
-git clone git@github.com:mgilangjanuar/satpam.git && \
-cd satpam
-```
+    ```bash
+    git clone git@github.com:mgilangjanuar/satpam.git && \
+    cd satpam
+    ```
 
 2. Install dependencies
 
-```bash
-yarn
-```
+    ```bash
+    yarn
+    ```
 
 3. Create [`.env.local`](#environment-variables) file
 
-```bash
-cp .env.example .env.local
-```
+    ```bash
+    cp .env.example .env.local
+    ```
 
-Edit the `.env.local` file with your configuration.
+    Edit the `.env.local` file with your configuration.
 
 4. Build and run the server
 
-```bash
-yarn build && \
-yarn start
-```
+    ```bash
+    yarn build && \
+    yarn start
+    ```
 
-Or, you can run the server in development mode
+    Or, you can run the server in development mode
 
-```bash
-yarn dev
-```
+    ```bash
+    yarn dev
+    ```
 
 ## Environment Variables
 
