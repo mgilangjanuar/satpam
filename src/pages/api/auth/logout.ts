@@ -19,7 +19,7 @@ export default authorization(wrapper(async (
         expires: new Date()
       }
     ))
-    res.end(res.getHeader('Set-Cookie'))
+    return res.end('{}')
   }
 
   return res.status(405).json({ error: 'Method not allowed' })

@@ -1,9 +1,11 @@
+import { User } from '@/contexts/user'
 import { f } from '@/lib/fetch'
-import { Button, Divider, Group, Paper, PasswordInput, Stack, Text, TextInput, Title, UnstyledButton, rem } from '@mantine/core'
+import { Button, Divider, Group, Paper, PasswordInput, Stack, Text, TextInput, Title, rem } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { showNotification } from '@mantine/notifications'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useRouter } from 'next/router'
+import { useContext, useState } from 'react'
 
 interface LoginForm {
   email: string,
@@ -11,7 +13,9 @@ interface LoginForm {
 }
 
 export default function Login() {
+  const router = useRouter()
   const [loading, setLoading] = useState(false)
+  const { setUser } = useContext(User)
   const form = useForm<LoginForm>({
     initialValues: {
       email: '',
@@ -23,11 +27,14 @@ export default function Login() {
     setLoading(true)
     try {
       await f.post('/api/auth/login', values)
+      const { user } = await f.get('/api/auth/me')
+      setUser(user)
       showNotification({
         title: 'Success',
         message: 'You have been logged in',
         color: 'teal'
       })
+      router.push('/')
     } catch (error: any) {
       showNotification({
         title: 'Error',

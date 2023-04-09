@@ -1,18 +1,50 @@
 import Shell, { MenuItem, ShellContext } from '@/components/shell'
+import { User, UserContext } from '@/contexts/user'
+import { f } from '@/lib/fetch'
 import { ColorScheme, ColorSchemeProvider, MantineProvider } from '@mantine/core'
-import { Notifications } from '@mantine/notifications'
+import { Notifications, showNotification } from '@mantine/notifications'
 import type { AppProps } from 'next/app'
 import Head from 'next/head'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import '@/styles/globals.css'
 
 export default function App({ Component, pageProps }: AppProps) {
   const [colorScheme, setColorScheme] = useState<ColorScheme>('light')
+  const [user, setUser] = useState<UserContext | null>(null)
   const [menu, setMenu] = useState<MenuItem[]>([])
-  const [menuHeader, setMenuHeader] = useState<MenuItem[]>([
-    { label: 'Login', href: '/auth/login' },
-  ])
+  const [menuHeader, setMenuHeader] = useState<MenuItem[]>([])
+
+  useEffect(() => {
+    f.get('/api/auth/me')
+    .then(({ user }) => {
+      setUser(user)
+    })
+    .catch(() => setUser(null))
+  }, [])
+
+  useEffect(() => {
+    if (!user) {
+      setMenuHeader([
+        { label: 'Login', href: '/auth/login' }
+      ])
+    } else {
+      setMenuHeader([
+        {
+          label: 'Logout',
+          onClick: () => f.post('/api/auth/logout', {})
+          .then(() => {
+            setUser(null)
+            showNotification({
+              title: 'Success',
+              message: 'You have been logged out',
+              color: 'teal'
+            })
+          })
+        }
+      ])
+    }
+  }, [user])
 
   return <>
     <Head>
@@ -27,11 +59,13 @@ export default function App({ Component, pageProps }: AppProps) {
 
         <Notifications position="top-right" notificationMaxHeight="100%" />
 
-        <ShellContext.Provider value={{ menu, setMenu, menuHeader, setMenuHeader }}>
-          <Shell menu={menu} menuHeader={menuHeader}>
-            <Component {...pageProps} />
-          </Shell>
-        </ShellContext.Provider>
+        <User.Provider value={{ user, setUser }}>
+          <ShellContext.Provider value={{ menu, setMenu, menuHeader, setMenuHeader }}>
+            <Shell menu={menu} menuHeader={menuHeader}>
+              <Component {...pageProps} />
+            </Shell>
+          </ShellContext.Provider>
+        </User.Provider>
 
       </MantineProvider>
     </ColorSchemeProvider>

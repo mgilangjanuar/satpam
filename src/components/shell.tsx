@@ -2,12 +2,13 @@ import { ActionIcon, AppShell, Burger, Button, Group, Header, MediaQuery, Navbar
 import { IconMoon, IconSun } from '@tabler/icons-react'
 import Link, { LinkProps } from 'next/link'
 import { useRouter } from 'next/router'
-import { ReactNode, createContext, isValidElement, useState } from 'react'
+import { MouseEventHandler, ReactNode, createContext, isValidElement, useState } from 'react'
 
 export interface MenuItem {
   label?: string,
   href?: string,
   icon?: ReactNode,
+  onClick?: () => void,
   element?: ReactNode
 }
 
@@ -33,15 +34,16 @@ function HeaderButtonLink(props: UnstyledButtonProps & LinkProps & { icon?: Reac
     })}
     {...props}
     component={Link}
-    href={props.href}>
-      {props.icon ? <Group spacing="sm">
-        <ThemeIcon
-          variant="light"
-          color={isActive ? "blue" : "gray"}>
-          {props.icon}
-        </ThemeIcon>
-        {props.children}
-      </Group> : props.children}
+    href={props.href || '#'}
+    onClick={props.onClick as MouseEventHandler<HTMLAnchorElement | HTMLButtonElement> || undefined}>
+    {props.icon ? <Group spacing="sm">
+      <ThemeIcon
+        variant="light"
+        color={isActive ? "blue" : "gray"}>
+        {props.icon}
+      </ThemeIcon>
+      {props.children}
+    </Group> : props.children}
   </UnstyledButton>
 }
 
@@ -88,8 +90,24 @@ export default function Shell({ children, menu, menuHeader }: { children: React.
                   } : {} }>
                   <Text>{item.label}</Text>
                 </Button>
-              } else {
-                <></>
+              } else if (item.onClick) {
+                return <Button
+                  key={i}
+                  variant="subtle"
+                  color={isActive ? 'blue' : 'gray'}
+                  onClick={e => {
+                    e.preventDefault()
+                    item.onClick?.()
+                  }}
+                  {...item.icon ? {
+                    leftIcon: <ThemeIcon
+                      variant="light"
+                      color={isActive ? "blue" : "gray"}>
+                      {item.icon }
+                    </ThemeIcon>
+                  } : {} }>
+                  <Text>{item.label}</Text>
+                </Button>
               }
             })}
             <ActionIcon onClick={() => toggleColorScheme()}>
@@ -115,8 +133,17 @@ export default function Shell({ children, menu, menuHeader }: { children: React.
                 {...item.icon ? { icon: item.icon } : {} }>
                 <Text>{item.label}</Text>
               </HeaderButtonLink>
-            } else {
-              <></>
+            } else if (item.onClick) {
+              return <HeaderButtonLink
+                key={i}
+                href="#"
+                onClick={() => {
+                  item.onClick?.()
+                  setOpened(false)
+                }}
+                {...item.icon ? { icon: item.icon } : {} }>
+                <Text>{item.label}</Text>
+              </HeaderButtonLink>
             }
           })}
         </Navbar.Section>

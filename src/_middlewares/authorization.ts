@@ -8,8 +8,6 @@ export function authorization(fn: (req: NextApiRequestWithUser, res: NextApiResp
     const { authorized_token: token } = req.cookies
     let authData: UserAuthSafe
 
-    console.log(token)
-
     if (!token) {
       return res.status(401).json({ error: 'Unauthorized' })
     }
