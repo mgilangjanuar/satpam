@@ -19,6 +19,7 @@ model User {
   verificationToken   String?   @map("verification_token")
   forgotPasswordToken String?   @map("forgot_password_token")
   role                String    @default("user")      // user, owner
+  publicKey           String    @map("public_key")
   createdAt           DateTime  @default(now())  @db.Timestamptz(3) @map("created_at")
   updatedAt           DateTime  @updatedAt       @db.Timestamptz(3) @map("updated_at")
   deletedAt           DateTime? @db.Timestamptz(3) @map("deleted_at")
