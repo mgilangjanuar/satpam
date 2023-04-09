@@ -3,6 +3,7 @@ import { Button, Divider, Group, Paper, PasswordInput, Stack, Text, TextInput, T
 import { useForm } from '@mantine/form'
 import { showNotification } from '@mantine/notifications'
 import Link from 'next/link'
+import { useState } from 'react'
 
 interface LoginForm {
   email: string,
@@ -10,6 +11,7 @@ interface LoginForm {
 }
 
 export default function Login() {
+  const [loading, setLoading] = useState(false)
   const form = useForm<LoginForm>({
     initialValues: {
       email: '',
@@ -18,6 +20,7 @@ export default function Login() {
   })
 
   const login = async (values: LoginForm) => {
+    setLoading(true)
     try {
       await f.post('/api/auth/login', values)
       showNotification({
@@ -31,6 +34,8 @@ export default function Login() {
         message: error.message,
         color: 'red'
       })
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -57,7 +62,7 @@ export default function Login() {
           <Link href="/auth/forgot">
             Forgot password?
           </Link>
-          <Button type="submit">
+          <Button type="submit" loading={loading}>
             Login
           </Button>
         </Group>

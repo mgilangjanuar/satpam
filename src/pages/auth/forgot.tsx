@@ -3,12 +3,14 @@ import { Button, Group, Paper, Stack, Text, TextInput, Title, rem } from '@manti
 import { useForm } from '@mantine/form'
 import { showNotification } from '@mantine/notifications'
 import Link from 'next/link'
+import { useState } from 'react'
 
 interface ForgotForm {
   email: string
 }
 
 export default function Forgot() {
+  const [loading, setLoading] = useState(false)
   const form = useForm<ForgotForm>({
     initialValues: {
       email: ''
@@ -16,6 +18,7 @@ export default function Forgot() {
   })
 
   const forgotPassword = async (values: ForgotForm) => {
+    setLoading(true)
     try {
       await f.post('/api/auth/forgotpassword', values)
       showNotification({
@@ -29,6 +32,8 @@ export default function Forgot() {
         message: error.message,
         color: 'red'
       })
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -49,7 +54,7 @@ export default function Forgot() {
           <Link href="/auth/login">
             Back to login
           </Link>
-          <Button type="submit">
+          <Button type="submit" loading={loading}>
             Reset
           </Button>
         </Group>
