@@ -5,7 +5,10 @@ export function wrapper(fn: (req: NextApiRequest, res: NextApiResponse) => Promi
     try {
       await fn(req, res)
     } catch (error: any) {
-      res.status(500).json({ error: error.message || error })
+      console.error(error)
+      if (!res.headersSent) {
+        return res.status(500).json({ error: error.message || error })
+      }
     }
   }
 }
