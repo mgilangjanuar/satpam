@@ -1,7 +1,6 @@
 import { wrapper } from '@/_middlewares/wrapper'
 import { prisma } from '@/lib/prisma'
 import { sendEmail } from '@/utils/sendEmail'
-import { genSaltSync, hashSync } from 'bcrypt'
 import type { NextApiRequest, NextApiResponse } from 'next'
 
 type Data = {

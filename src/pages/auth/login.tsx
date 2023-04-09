@@ -43,7 +43,7 @@ export default function Login() {
     <Paper withBorder p="md" maw={480} w="100%">
       <Title order={2}>Login</Title>
       <Text mb="lg" mt="xs" color="dimmed">
-        Login to your account
+        Login to your account.
       </Text>
       <form onSubmit={form.onSubmit(login)}>
         <TextInput
