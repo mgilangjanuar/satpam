@@ -79,3 +79,7 @@ declare module 'react-qr-scanner' {
 
   export default QrReader
 }
+
+declare module 'dirty-json' {
+  export function parse(json: string): any
+}

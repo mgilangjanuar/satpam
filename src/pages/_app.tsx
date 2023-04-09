@@ -8,8 +8,10 @@ import Head from 'next/head'
 import { useEffect, useState } from 'react'
 
 import '@/styles/globals.css'
+import { useRouter } from 'next/router'
 
 export default function App({ Component, pageProps }: AppProps) {
+  const router = useRouter()
   const [colorScheme, setColorScheme] = useState<ColorScheme>('light')
   const [user, setUser] = useState<UserContext | null>(null)
   const [menu, setMenu] = useState<MenuItem[]>([])
@@ -40,6 +42,7 @@ export default function App({ Component, pageProps }: AppProps) {
               message: 'You have been logged out',
               color: 'teal'
             })
+            router.push('/')
           })
         }
       ])
