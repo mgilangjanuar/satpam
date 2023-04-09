@@ -2,8 +2,8 @@ import { wrapper } from '@/_middlewares/wrapper'
 import { prisma } from '@/lib/prisma'
 import { sendEmail } from '@/utils/sendEmail'
 import { genSaltSync, hashSync } from 'bcrypt'
-import NodeRSA from 'encrypt-rsa'
 import type { NextApiRequest, NextApiResponse } from 'next'
+import NodeRSA from 'node-rsa'
 import { genSync } from 'random-web-token'
 
 type Data = {
@@ -22,13 +22,16 @@ export default wrapper(async (
     }
 
     const token = genSync('extra', 72)
-    const { publicKey, privateKey } = new NodeRSA().createPrivateAndPublicKeys()
+
+    const rsa = new NodeRSA()
+    rsa.generateKeyPair()
+
     const usersCount = await prisma.user.count()
     await prisma.user.create({
       data: {
         name,
         email,
-        publicKey,
+        publicKey: rsa.exportKey('public'),
         role: usersCount === 0 ? 'owner' : 'user',
         password: hashSync(password, genSaltSync()),
         verificationToken: token,
@@ -41,7 +44,7 @@ export default wrapper(async (
       token
     })
 
-    return res.status(200).json({ privateKey })
+    return res.status(200).json({ privateKey: rsa.exportKey('private') })
   }
 
   return res.status(405).json({ error: 'Method not allowed' })

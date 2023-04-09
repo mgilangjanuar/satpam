@@ -4,8 +4,8 @@ import { prisma } from '@/lib/prisma'
 import { parseQuery } from '@/utils/parseQuery'
 import { Password } from '@prisma/client'
 import { genSaltSync } from 'bcrypt'
-import NodeRSA from 'encrypt-rsa'
 import type { NextApiResponse } from 'next'
+import NodeRSA from 'node-rsa'
 import StringCrypto from 'string-crypto'
 
 type Data = {
@@ -37,6 +37,11 @@ export default authorization(wrapper(async (
       take = Number(t) || 10
     }
 
+    const { decryptString } = new StringCrypto({
+      salt: genSaltSync(),
+      digest: process.env.DIGEST as string
+    })
+
     const passwords = await prisma.password.findMany({
       orderBy: sort,
       skip,
@@ -47,7 +52,13 @@ export default authorization(wrapper(async (
       }
     })
 
-    return res.status(200).json({ passwords })
+    return res.status(200).json({
+      passwords: passwords.map(password => ({
+        ...password,
+        username: decryptString(password.username, process.env.ENCRYPT_KEY as string),
+        password: decryptString(password.password, process.env.ENCRYPT_KEY as string)
+      }))
+    })
   }
 
   if (req.method === 'POST') {
@@ -69,21 +80,20 @@ export default authorization(wrapper(async (
       return res.status(400).json({ error: 'User not found' })
     }
 
-    const { encryptStringWithRsaPublicKey } = new NodeRSA()
+
+    const rsa = new NodeRSA()
+    rsa.importKey(user.publicKey)
+
     const { encryptString } = new StringCrypto({
       salt: genSaltSync(),
       digest: process.env.DIGEST as string
     })
     await prisma.password.create({
       data: {
-        username: encryptString(encryptStringWithRsaPublicKey({
-          text: username,
-          publicKey: user.publicKey
-        }), process.env.ENCRYPT_KEY as string),
-        password: encryptString(encryptStringWithRsaPublicKey({
-          text: password,
-          publicKey: user.publicKey
-        }), process.env.ENCRYPT_KEY as string),
+        username: encryptString(
+          rsa.encrypt(username, 'base64'), process.env.ENCRYPT_KEY as string),
+        password: encryptString(
+          rsa.encrypt(password, 'base64'), process.env.ENCRYPT_KEY as string),
         serviceId: req.query.id as string
       }
     })
