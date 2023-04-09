@@ -15,21 +15,21 @@ export default authorization(wrapper(async (
   res: NextApiResponse<Data>
 ) => {
   if (req.method === 'GET' || (req.method === 'POST' && req.body?._search)) {
-    const { orderBy, pagination, ...query } = req.query
+    const { _orderBy, _skip, _take, ...query } = req.query
 
     // build orderBy
     let sort: { [Property in keyof User]?: 'asc' | 'desc' } = { createdAt: 'desc' }
-    if (req.query?.orderBy) {
-      const { orderBy: order } = parseQuery(req.query, ['orderBy'])
+    if (_orderBy) {
+      const { _orderBy: order } = parseQuery(req.query, ['_orderBy'])
       const [key, value] = order.split(':')
       sort = { [key]: value as 'asc' | 'desc' || 'asc' }
     }
 
     // build pagination
-    let [skip, take] = [0, 10]
-    if (req.query?.pagination) {
-      const { pagination } = parseQuery(req.query, ['pagination'])
-      const [s, t] = pagination.split(':')
+    let skip = 0
+    let take = 10
+    if (_skip || _take) {
+      const { _skip: s, _take: t } = parseQuery(req.query, ['_skip', '_take'])
       skip = Number(s) || 0
       take = Number(t) || 10
     }

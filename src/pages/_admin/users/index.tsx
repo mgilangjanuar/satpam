@@ -2,7 +2,7 @@ import { f } from '@/lib/fetch'
 import { ActionIcon, Container, Group, JsonInput, ScrollArea, Stack, Table, Title } from '@mantine/core'
 import { showNotification } from '@mantine/notifications'
 import { User } from '@prisma/client'
-import { IconPlayerPlayFilled } from '@tabler/icons-react'
+import { IconArrowLeft, IconArrowRight, IconPlayerPlayFilled } from '@tabler/icons-react'
 import dayjs from 'dayjs'
 import dJSON from 'dirty-json'
 import { useRouter } from 'next/router'
@@ -13,11 +13,13 @@ export default function Users() {
   const [users, setUsers] = useState<User[]>()
   const [filtersLoading, setFiltersLoading] = useState<boolean>(false)
   const [filters, setFilters] = useState<{
-    pagination: `${number}:${number}`,
+    skip: number,
+    take: number,
     orderBy: `${string}:${'desc' | 'asc'}`,
     search: Record<string, any>
   }>({
-    pagination: '0:10',
+    skip: 0,
+    take: 10,
     orderBy: 'createdAt:desc',
     search: {}
   })
@@ -28,8 +30,9 @@ export default function Users() {
     try {
       const { users } = await f.post(`/api/users?${
         new URLSearchParams({
-          pagination: filters.pagination,
-          orderBy: filters.orderBy
+          _skip: filters.skip.toString(),
+          _take: filters.take.toString(),
+          _orderBy: filters.orderBy
         })
       }`, { _search: filters.search })
       setUsers(users)
@@ -39,7 +42,9 @@ export default function Users() {
         message: error.message,
         color: 'red'
       })
-      router.push('/')
+      if (error.message === 'Unauthorized')  {
+        router.push('/')
+      }
     } finally {
       setFiltersLoading(false)
     }
@@ -48,6 +53,10 @@ export default function Users() {
   useEffect(() => {
     fetchAll()
   }, [fetchAll])
+
+  useEffect(() => {
+    setFiltersRaw(JSON.stringify(filters, null, 2))
+  }, [filters])
 
   return <Container>
     <Title order={3}>Users Management</Title>
@@ -82,6 +91,18 @@ export default function Users() {
           <IconPlayerPlayFilled size={18} />
         </ActionIcon>
       </Stack>
+    </Group>
+    <Group mt="sm">
+      <ActionIcon variant="subtle" disabled={filters.skip === 0} onClick={() => {
+        setFilters(filters => ({ ...filters, skip: filters.skip - filters.take }))
+      }}>
+        <IconArrowLeft size={20} />
+      </ActionIcon>
+      <ActionIcon variant="subtle" disabled={(users?.length || 0) < filters.take} onClick={() => {
+        setFilters(filters => ({ ...filters, skip: filters.skip + filters.take }))
+      }}>
+        <IconArrowRight size={20} />
+      </ActionIcon>
     </Group>
     <ScrollArea mt="md">
       <Table striped>
