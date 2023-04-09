@@ -35,7 +35,7 @@ export default function Register() {
     setLoading(true)
     try {
       const { privateKey } = await f.post('/api/auth/register', values)
-      localStorage.setItem('privateKey', privateKey)
+      localStorage.setItem(`privateKey:${values.email}`, privateKey)
       showNotification({
         title: 'Success',
         message: 'Please check your email to verify your account',
