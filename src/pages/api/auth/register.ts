@@ -11,10 +11,10 @@ type Data = {
   error?: string
 }
 
-export default wrapper(async function handler(
+export default wrapper(async (
   req: NextApiRequest,
   res: NextApiResponse<Data>
-) {
+) => {
   if (req.method === 'POST') {
     const { name, email, password } = req.body
     if (!name || !email || !password) {

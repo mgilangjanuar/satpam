@@ -9,10 +9,10 @@ type Data = {
   error?: string
 }
 
-export default wrapper(async function handler(
+export default wrapper(async (
   req: NextApiRequest,
   res: NextApiResponse<Data>
-) {
+) => {
   if (req.method === 'POST') {
     if (!process.env.SECRET_KEY) return res.status(500).json({ error: 'Missing secret key' })
 

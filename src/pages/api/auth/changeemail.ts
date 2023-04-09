@@ -1,15 +1,17 @@
+import { NextApiRequestWithUser, authorization } from '@/_middlewares/authorization'
 import { wrapper } from '@/_middlewares/wrapper'
 import { prisma } from '@/lib/prisma'
 import { sendEmail } from '@/utils/sendEmail'
-import type { NextApiRequest, NextApiResponse } from 'next'
+import { serialize } from 'cookie'
+import type { NextApiResponse } from 'next'
 import { genSync } from 'random-web-token'
 
 type Data = {
   error?: string
 }
 
-export default wrapper(async (
-  req: NextApiRequest,
+export default authorization(wrapper(async (
+  req: NextApiRequestWithUser,
   res: NextApiResponse<Data>
 ) => {
   if (req.method === 'POST') {
@@ -18,36 +20,32 @@ export default wrapper(async (
       return res.status(400).json({ error: 'Missing email' })
     }
 
-    const user = await prisma.user.findFirst({
-      select: {
-        id: true,
-      }, where: {
-        email
-      }
-    })
-
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' })
-    }
-
     const token = genSync('extra', 72)
-
     await prisma.user.update({
       where: {
-        id: user.id
+        id: req.user?.id
       },
       data: {
-        forgotPasswordToken: token
+        email,
+        verificationToken: token
       }
     })
 
     await sendEmail({
       to: email,
-      type: 'passwordReset',
+      type: 'emailVerification',
       token
     })
 
-    return res.status(200).json({})
+    res.setHeader('Set-Cookie', serialize(
+      'authorized_token', '', {
+        maxAge: 0,
+        path: '/',
+        httpOnly: true,
+        expires: new Date()
+      }
+    ))
+    return res.end('{}')
   }
   return res.status(405).json({ error: 'Method not allowed' })
-})
+}))
