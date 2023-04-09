@@ -23,15 +23,21 @@ Satpam is a secure and trusted password manager and 2FA. Built with [Next.js](ht
     yarn
     ```
 
-3. Create [`.env.local`](#environment-variables) file
+3. Create [`.env`](#environment-variables) file
 
     ```bash
-    cp .env.example .env.local
+    cp .env.example .env
     ```
 
-    Edit the `.env.local` file with your configuration.
+    Edit the `.env` file with your configuration.
 
-4. Build and run the server
+4. Migrate database
+
+    ```bash
+    yarn prisma migrate deploy
+    ```
+
+5. Build and run the server
 
     ```bash
     yarn build && \
