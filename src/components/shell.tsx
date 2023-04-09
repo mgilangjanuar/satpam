@@ -1,4 +1,4 @@
-import { ActionIcon, AppShell, Burger, Button, Group, Header, MediaQuery, Navbar, Stack, Text, ThemeIcon, Title, UnstyledButton, UnstyledButtonProps, rem, useMantineColorScheme } from '@mantine/core'
+import { ActionIcon, AppShell, Burger, Button, ButtonProps, Group, Header, MediaQuery, Navbar, Stack, Text, ThemeIcon, Title, UnstyledButton, UnstyledButtonProps, rem, useMantineColorScheme } from '@mantine/core'
 import { IconMoon, IconSun } from '@tabler/icons-react'
 import Link, { LinkProps } from 'next/link'
 import { useRouter } from 'next/router'
@@ -12,7 +12,26 @@ export interface MenuItem {
   element?: ReactNode
 }
 
-function HeaderButtonLink(props: UnstyledButtonProps & LinkProps & { icon?: ReactNode }) {
+function HeaderButtonLink(props: ButtonProps & LinkProps & { icon?: ReactNode }) {
+  const location = useRouter()
+  const isActive = location.pathname.split('/').slice(0, 2).join('/') === props.href
+
+  return <Button
+    variant="subtle"
+    color={isActive ? 'blue' : 'gray'}
+    {...props}
+    component={Link}
+    href={props.href || '#'}
+    {...props.icon ? {
+      leftIcon: <ThemeIcon
+        variant="light"
+        color={isActive ? "blue" : "gray"}>
+        {props.icon }
+      </ThemeIcon>
+    } : {} } />
+}
+
+function NavbarButtonLink(props: UnstyledButtonProps & LinkProps & { icon?: ReactNode }) {
   const location = useRouter()
   const isActive = location.pathname.split('/').slice(0, 2).join('/') === props.href
 
@@ -71,43 +90,23 @@ export default function Shell({ children, menu, menuHeader }: { children: React.
           </Group>
           <Group>
             {menuHeader?.map((item, i) => {
-              const isActive = location.pathname.split('/').slice(0, 2).join('/') === item.href
               if (item.element && isValidElement(item.element)) {
                 return item.element
-              } else if (item.href) {
-                return <Button
+              } else if (item.href || item.onClick) {
+                return <HeaderButtonLink
                   key={i}
-                  variant="subtle"
-                  color={isActive ? 'blue' : 'gray'}
-                  component={Link}
-                  href={item.href}
-                  {...item.icon ? {
-                    leftIcon: <ThemeIcon
-                      variant="light"
-                      color={isActive ? "blue" : "gray"}>
-                      {item.icon }
-                    </ThemeIcon>
-                  } : {} }>
-                  <Text>{item.label}</Text>
-                </Button>
-              } else if (item.onClick) {
-                return <Button
-                  key={i}
-                  variant="subtle"
-                  color={isActive ? 'blue' : 'gray'}
+                  href={item.href || '#'}
                   onClick={e => {
-                    e.preventDefault()
-                    item.onClick?.()
+                    if (item.onClick) {
+                      e.preventDefault()
+                      item.onClick()
+                    }
                   }}
-                  {...item.icon ? {
-                    leftIcon: <ThemeIcon
-                      variant="light"
-                      color={isActive ? "blue" : "gray"}>
-                      {item.icon }
-                    </ThemeIcon>
-                  } : {} }>
+                  icon={item.icon}>
                   <Text>{item.label}</Text>
-                </Button>
+                </HeaderButtonLink>
+              } else {
+                return <></>
               }
             })}
             <ActionIcon onClick={() => toggleColorScheme()}>
@@ -125,25 +124,19 @@ export default function Shell({ children, menu, menuHeader }: { children: React.
           {menu.map((item, i) => {
             if (item.element && isValidElement(item.element)) {
               return item.element
-            } else if (item.href) {
-              return <HeaderButtonLink
+            } else if (item.href || item.onClick) {
+              return <NavbarButtonLink
                 key={i}
-                href={item.href}
-                onClick={() => setOpened(false)}
-                {...item.icon ? { icon: item.icon } : {} }>
-                <Text>{item.label}</Text>
-              </HeaderButtonLink>
-            } else if (item.onClick) {
-              return <HeaderButtonLink
-                key={i}
-                href="#"
+                href={item.href || '#'}
                 onClick={() => {
-                  item.onClick?.()
                   setOpened(false)
+                  item.onClick?.()
                 }}
                 {...item.icon ? { icon: item.icon } : {} }>
                 <Text>{item.label}</Text>
-              </HeaderButtonLink>
+              </NavbarButtonLink>
+            } else {
+              return <></>
             }
           })}
         </Navbar.Section>
