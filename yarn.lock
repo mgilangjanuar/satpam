@@ -4337,6 +4337,11 @@ streamsearch@^1.1.0:
   resolved "https://registry.yarnpkg.com/streamsearch/-/streamsearch-1.1.0.tgz#404dd1e2247ca94af554e841a8ef0eaa238da764"
   integrity sha512-Mcc5wHehp9aXz1ax6bZUyY5afg9u2rv5cqQI3mRrYkGC8rW2hM02jWuwjtL++LS5qinSyhj2QfLyNsuc+VsExg==
 
+string-crypto@^2.0.2:
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/string-crypto/-/string-crypto-2.0.2.tgz#edd3ce05335705aa927ee94d8c8221600478badd"
+  integrity sha512-LhWeKBSpThCr/XEIltPNNfg9Rp10Ei/xPYANF2Y4ezaoXuF0fOU2vjwRfcaK1kgavkKkBqMWvh222cscP9myCA==
+
 "string-width@^1.0.2 || 2 || 3 || 4", string-width@^4.0.0, string-width@^4.1.0, string-width@^4.2.0, string-width@^4.2.2, string-width@^4.2.3:
   version "4.2.3"
   resolved "https://registry.yarnpkg.com/string-width/-/string-width-4.2.3.tgz#269c7117d27b05ad2e536830a8ec895ef9c6d010"
