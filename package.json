@@ -33,6 +33,7 @@
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-qr-scanner": "^1.0.0-alpha.11",
+    "string-crypto": "^2.0.2",
     "totp-generator": "^0.0.14",
     "typescript": "5.0.3"
   },

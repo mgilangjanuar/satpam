@@ -3,8 +3,10 @@ import { wrapper } from '@/_middlewares/wrapper'
 import { prisma } from '@/lib/prisma'
 import { parseQuery } from '@/utils/parseQuery'
 import { Password } from '@prisma/client'
+import { genSaltSync } from 'bcrypt'
 import NodeRSA from 'encrypt-rsa'
 import type { NextApiResponse } from 'next'
+import StringCrypto from 'string-crypto'
 
 type Data = {
   passwords?: Password[],
@@ -67,17 +69,21 @@ export default authorization(wrapper(async (
       return res.status(400).json({ error: 'User not found' })
     }
 
-    const rsa = new NodeRSA()
+    const { encryptStringWithRsaPublicKey } = new NodeRSA()
+    const { encryptString } = new StringCrypto({
+      salt: genSaltSync(),
+      digest: process.env.DIGEST as string
+    })
     await prisma.password.create({
       data: {
-        username: rsa.encryptStringWithRsaPublicKey({
+        username: encryptString(encryptStringWithRsaPublicKey({
           text: username,
           publicKey: user.publicKey
-        }),
-        password: rsa.encryptStringWithRsaPublicKey({
+        }), process.env.ENCRYPT_KEY as string),
+        password: encryptString(encryptStringWithRsaPublicKey({
           text: password,
           publicKey: user.publicKey
-        }),
+        }), process.env.ENCRYPT_KEY as string),
         serviceId: req.query.id as string
       }
     })
