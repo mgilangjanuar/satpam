@@ -3,7 +3,6 @@ import { wrapper } from '@/_middlewares/wrapper'
 import { prisma } from '@/lib/prisma'
 import { parseQuery } from '@/utils/parseQuery'
 import { Password } from '@prisma/client'
-import { genSaltSync } from 'bcrypt'
 import type { NextApiResponse } from 'next'
 import NodeRSA from 'node-rsa'
 import StringCrypto from 'string-crypto'
@@ -18,7 +17,7 @@ export default authorization(wrapper(async (
   res: NextApiResponse<Data>
 ) => {
   if (req.method === 'GET' || (req.method === 'POST' && req.body?._search)) {
-    const { _orderBy, _skip, _take, ...query } = req.query
+    const { _orderBy, _skip, _take, id: _, ...query } = req.query
 
     // build orderBy
     let sort: { [Property in keyof Password]?: 'asc' | 'desc' } = { createdAt: 'desc' }
@@ -38,7 +37,6 @@ export default authorization(wrapper(async (
     }
 
     const { decryptString } = new StringCrypto({
-      salt: genSaltSync(),
       digest: process.env.DIGEST as string
     })
 
@@ -85,7 +83,6 @@ export default authorization(wrapper(async (
     rsa.importKey(user.publicKey)
 
     const { encryptString } = new StringCrypto({
-      salt: genSaltSync(),
       digest: process.env.DIGEST as string
     })
     await prisma.password.create({

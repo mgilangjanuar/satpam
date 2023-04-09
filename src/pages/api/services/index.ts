@@ -1,4 +1,4 @@
-import { NextApiRequestWithUser, UserAuthSafe, authorization } from '@/_middlewares/authorization'
+import { NextApiRequestWithUser, authorization } from '@/_middlewares/authorization'
 import { wrapper } from '@/_middlewares/wrapper'
 import { prisma } from '@/lib/prisma'
 import { parseQuery } from '@/utils/parseQuery'
