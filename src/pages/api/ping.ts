@@ -6,8 +6,9 @@ type Data = {
 }
 
 export default function handler(
-  _: NextApiRequest,
+  req: NextApiRequest,
   res: NextApiResponse<Data>
 ) {
+  console.log(req.headers)
   res.status(200).json({ pong: true })
 }
