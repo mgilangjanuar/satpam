@@ -135,7 +135,7 @@ export default function Profile() {
           Hello, {user?.name}!
         </Title>
 
-        <Paper p="md" mt="lg" pb="xl" mb="xl" shadow="xs">
+        <Paper p="md" mt="md" pb="xl" mb="xl" shadow="xs">
           <form onSubmit={formName.onSubmit(updateName)}>
             <Group align="end">
               <TextInput

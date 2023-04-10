@@ -34,7 +34,7 @@ export default function Login() {
         message: 'You have been logged in',
         color: 'teal'
       })
-      router.push('/')
+      router.push('/dashboard')
     } catch (error: any) {
       showNotification({
         title: 'Error',
