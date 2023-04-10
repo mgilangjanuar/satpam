@@ -1,4 +1,4 @@
-import { User } from '@/contexts/user'
+import { UserContext } from '@/contexts/user'
 import { f } from '@/lib/fetch'
 import { Button, Divider, Group, Paper, PasswordInput, Stack, Text, TextInput, Title, rem } from '@mantine/core'
 import { useForm } from '@mantine/form'
@@ -15,7 +15,7 @@ interface LoginForm {
 export default function Login() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
-  const { setUser } = useContext(User)
+  const { setUser } = useContext(UserContext)
   const form = useForm<LoginForm>({
     initialValues: {
       email: '',

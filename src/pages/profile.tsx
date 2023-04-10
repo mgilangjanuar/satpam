@@ -1,5 +1,5 @@
 import { version } from '@/../package.json'
-import { User } from '@/contexts/user'
+import { UserContext } from '@/contexts/user'
 import { f } from '@/lib/fetch'
 import { ActionIcon, Box, Button, Col, Container, Divider, Grid, Group, PasswordInput, Text, TextInput, Title } from '@mantine/core'
 import { useForm } from '@mantine/form'
@@ -24,7 +24,7 @@ interface PasswordForm {
 
 export default function Profile() {
   const router = useRouter()
-  const { user, completeGetUser, setUser } = useContext(User)
+  const { user, completeGetUser, setUser } = useContext(UserContext)
   const [loadingName, setLoadingName] = useState(false)
   const [loadingEmail, setLoadingEmail] = useState(false)
   const [loadingPassword, setLoadingPassword] = useState(false)

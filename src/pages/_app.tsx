@@ -1,17 +1,19 @@
 import Shell, { MenuItem, ShellContext } from '@/components/shell'
-import { User, UserContext } from '@/contexts/user'
+import { UserContext, UserContextAttributes } from '@/contexts/user'
 import { f } from '@/lib/fetch'
 import { ColorScheme, ColorSchemeProvider, MantineProvider } from '@mantine/core'
 import { Notifications } from '@mantine/notifications'
 import type { AppProps } from 'next/app'
 import Head from 'next/head'
+import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
 
 import '@/styles/globals.css'
 
 export default function App({ Component, pageProps }: AppProps) {
+  const router = useRouter()
   const [colorScheme, setColorScheme] = useState<ColorScheme>('light')
-  const [user, setUser] = useState<UserContext | null>(null)
+  const [user, setUser] = useState<UserContextAttributes | null>(null)
   const [completeGetUser, setCompleteGetUser] = useState(true)
   const [menu, setMenu] = useState<MenuItem[]>([])
   const [menuHeader, setMenuHeader] = useState<MenuItem[]>([])
@@ -36,10 +38,12 @@ export default function App({ Component, pageProps }: AppProps) {
       ])
     } else {
       setMenuHeader([
-        { label: 'Profile', href: '/profile' }
+        ...router.pathname.startsWith('/dashboard') ? [] : [
+          { label: 'Dashboard', href: '/dashboard' }
+        ]
       ])
     }
-  }, [user])
+  }, [user, router.pathname])
 
   return <>
     <Head>
@@ -54,13 +58,13 @@ export default function App({ Component, pageProps }: AppProps) {
 
         <Notifications position="top-right" notificationMaxHeight="100%" />
 
-        <User.Provider value={{ user, setUser, completeGetUser }}>
+        <UserContext.Provider value={{ user, setUser, completeGetUser }}>
           <ShellContext.Provider value={{ menu, setMenu, menuHeader, setMenuHeader }}>
             <Shell menu={menu} menuHeader={menuHeader}>
               <Component {...pageProps} />
             </Shell>
           </ShellContext.Provider>
-        </User.Provider>
+        </UserContext.Provider>
 
       </MantineProvider>
     </ColorSchemeProvider>

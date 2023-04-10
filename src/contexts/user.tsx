@@ -1,15 +1,15 @@
 import { createContext } from 'react'
 
-export interface UserContext {
+export interface UserContextAttributes {
   id: string,
   name: string,
   email: string
 }
 
-export const User = createContext<{
-  user: UserContext | null,
+export const UserContext = createContext<{
+  user: UserContextAttributes | null,
   completeGetUser: boolean,
-  setUser: (user: UserContext | null) => void
+  setUser: (user: UserContextAttributes | null) => void
 }>({
   user: null,
   completeGetUser: true,
