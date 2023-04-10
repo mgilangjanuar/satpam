@@ -14,7 +14,7 @@ export default authorization(wrapper(async (
   req: NextApiRequestWithUser,
   res: NextApiResponse<Data>
 ) => {
-  if (req.method === 'POST') {
+  if (req.method === 'PATCH') {
     const { email } = req.body
     if (!email) {
       return res.status(400).json({ error: 'Missing email' })

@@ -13,7 +13,7 @@ export default authorization(wrapper(async (
   req: NextApiRequestWithUser,
   res: NextApiResponse<Data>
 ) => {
-  if (req.method === 'POST') {
+  if (req.method === 'PATCH') {
     const { password, newPassword } = req.body
     if (!password || !newPassword) {
       return res.status(400).json({ error: 'Missing password or newPassword' })
