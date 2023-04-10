@@ -1,24 +1,29 @@
-import Shell, { MenuItem, ShellContext } from '@/components/shell'
-import { UserContext, UserContextAttributes } from '@/contexts/user'
+import Shell, { ShellContext } from '@/components/shell'
+import { UserContext } from '@/contexts/user'
 import { useProtectedPages } from '@/hooks/useProtectedPages'
+import { useSetupStates } from '@/hooks/useSetupStates'
 import { useUpdateHeader } from '@/hooks/useUpdateHeader'
 import { useUser } from '@/hooks/useUser'
-import { ColorScheme, ColorSchemeProvider, MantineProvider } from '@mantine/core'
+import { ColorSchemeProvider, MantineProvider } from '@mantine/core'
 import { Notifications } from '@mantine/notifications'
 import type { AppProps } from 'next/app'
 import Head from 'next/head'
-import { useState } from 'react'
 
 import '@/styles/globals.css'
 
 export default function App({ Component, pageProps }: AppProps) {
-  const [colorScheme, setColorScheme] = useState<ColorScheme>('light')
-
-  const [user, setUser] = useState<UserContextAttributes | null>(null)
-  const [completeGetUser, setCompleteGetUser] = useState(false)
-
-  const [menu, setMenu] = useState<MenuItem[]>([])
-  const [menuHeader, setMenuHeader] = useState<MenuItem[]>([])
+  const {
+    colorScheme,
+    setColorScheme,
+    user,
+    setUser,
+    completeGetUser,
+    setCompleteGetUser,
+    menu,
+    setMenu,
+    menuHeader,
+    setMenuHeader
+  } = useSetupStates()
 
   useUser({ setUser, setCompleteGetUser })
   useUpdateHeader({ user, setMenuHeader })
