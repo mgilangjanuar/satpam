@@ -8,21 +8,25 @@ import Head from 'next/head'
 import { useEffect, useState } from 'react'
 
 import '@/styles/globals.css'
-import { useRouter } from 'next/router'
 
 export default function App({ Component, pageProps }: AppProps) {
-  const router = useRouter()
   const [colorScheme, setColorScheme] = useState<ColorScheme>('light')
   const [user, setUser] = useState<UserContext | null>(null)
+  const [completeGetUser, setCompleteGetUser] = useState(true)
   const [menu, setMenu] = useState<MenuItem[]>([])
   const [menuHeader, setMenuHeader] = useState<MenuItem[]>([])
 
   useEffect(() => {
+    setCompleteGetUser(true)
     f.get('/api/auth/me')
     .then(({ user }) => {
       setUser(user)
+      setCompleteGetUser(false)
     })
-    .catch(() => setUser(null))
+    .catch(() => {
+      setUser(null)
+      setCompleteGetUser(false)
+    })
   }, [])
 
   useEffect(() => {
@@ -50,7 +54,7 @@ export default function App({ Component, pageProps }: AppProps) {
 
         <Notifications position="top-right" notificationMaxHeight="100%" />
 
-        <User.Provider value={{ user, setUser }}>
+        <User.Provider value={{ user, setUser, completeGetUser }}>
           <ShellContext.Provider value={{ menu, setMenu, menuHeader, setMenuHeader }}>
             <Shell menu={menu} menuHeader={menuHeader}>
               <Component {...pageProps} />

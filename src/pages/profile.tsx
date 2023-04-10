@@ -24,7 +24,7 @@ interface PasswordForm {
 
 export default function Profile() {
   const router = useRouter()
-  const { user, setUser } = useContext(User)
+  const { user, completeGetUser, setUser } = useContext(User)
   const [loadingName, setLoadingName] = useState(false)
   const [loadingEmail, setLoadingEmail] = useState(false)
   const [loadingPassword, setLoadingPassword] = useState(false)
@@ -77,7 +77,6 @@ export default function Profile() {
         color: 'teal'
       })
       setUser(null)
-      router.push('/auth/login')
     } catch (e: any) {
       showNotification({
         title: 'Error',
@@ -102,7 +101,6 @@ export default function Profile() {
         color: 'teal'
       })
       setUser(null)
-      router.push('/auth/login')
     } catch (e: any) {
       showNotification({
         title: 'Error',
@@ -122,7 +120,6 @@ export default function Profile() {
       message: 'You have been logged out',
       color: 'teal'
     })
-    router.push('/')
   }
 
   useEffect(() => {
@@ -132,6 +129,12 @@ export default function Profile() {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user])
+
+  useEffect(() => {
+    if (!completeGetUser && !user) {
+      router.push('/auth/login')
+    }
+  }, [completeGetUser, user, router])
 
   return <Container>
     <Grid>

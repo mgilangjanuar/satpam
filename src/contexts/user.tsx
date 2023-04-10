@@ -6,7 +6,12 @@ export interface UserContext {
   email: string
 }
 
-export const User = createContext<{ user: UserContext | null, setUser: (user: UserContext | null) => void }>({
+export const User = createContext<{
+  user: UserContext | null,
+  completeGetUser: boolean,
+  setUser: (user: UserContext | null) => void
+}>({
   user: null,
+  completeGetUser: true,
   setUser: () => {},
 })
