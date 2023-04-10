@@ -2,7 +2,7 @@ import Shell, { MenuItem, ShellContext } from '@/components/shell'
 import { User, UserContext } from '@/contexts/user'
 import { f } from '@/lib/fetch'
 import { ColorScheme, ColorSchemeProvider, MantineProvider } from '@mantine/core'
-import { Notifications, showNotification } from '@mantine/notifications'
+import { Notifications } from '@mantine/notifications'
 import type { AppProps } from 'next/app'
 import Head from 'next/head'
 import { useEffect, useState } from 'react'
@@ -32,19 +32,7 @@ export default function App({ Component, pageProps }: AppProps) {
       ])
     } else {
       setMenuHeader([
-        {
-          label: 'Logout',
-          onClick: () => f.post('/api/auth/logout', {})
-          .then(() => {
-            setUser(null)
-            showNotification({
-              title: 'Success',
-              message: 'You have been logged out',
-              color: 'teal'
-            })
-            router.push('/')
-          })
-        }
+        { label: 'Profile', href: '/profile' }
       ])
     }
   }, [user])

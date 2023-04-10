@@ -33,7 +33,7 @@ export default authorization(wrapper(async (
     }
 
     if (!compareSync(password, user.password)) {
-      return res.status(401).json({ error: 'Invalid email or password' })
+      return res.status(401).json({ error: 'Invalid password' })
     }
 
     await prisma.user.update({

@@ -172,9 +172,9 @@ export default function User() {
     <Group mt="md" position="right">
       <Popover withArrow width={280}>
         <Popover.Target>
-          {user?.deletedAt ? <Button variant="light">
+          {user?.deletedAt ? <Button size="sm" variant="light">
             Recover
-          </Button> : <Button color="red" variant="light">
+          </Button> : <Button size="sm" color="red" variant="light">
             Delete
           </Button>}
         </Popover.Target>
@@ -183,15 +183,15 @@ export default function User() {
             Are you sure you want to {user?.deletedAt ? 'recover' : 'delete'} this user?
           </Text>
           <Group mt="md" position="right">
-            {user?.deletedAt ? <Button variant="light" onClick={recover}>
+            {user?.deletedAt ? <Button size="sm" variant="light" onClick={recover}>
               Recover
-            </Button> : <Button color="red" variant="light" onClick={remove}>
+            </Button> : <Button size="sm" color="red" variant="light" onClick={remove}>
               Yes, confirm
             </Button>}
           </Group>
         </Popover.Dropdown>
       </Popover>
-      <Button color="yellow" variant="light" onClick={() => {
+      <Button size="sm" color="yellow" variant="light" onClick={() => {
         form.setValues(user as UpdateUserForm)
         setOpened(true)
       }}>
@@ -238,7 +238,7 @@ export default function User() {
           {...form.getInputProps('forgotPasswordToken')}
         />
         <Group mt="md" position="right">
-          <Button color="yellow" type="submit" variant="light">
+          <Button size="sm" color="yellow" type="submit" variant="light">
             Update
           </Button>
         </Group>

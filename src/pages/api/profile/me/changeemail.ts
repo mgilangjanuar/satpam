@@ -21,15 +21,19 @@ export default authorization(wrapper(async (
     }
 
     const token = genSync('extra', 72)
-    await prisma.user.update({
-      where: {
-        id: req.user?.id
-      },
-      data: {
-        email,
-        verificationToken: token
-      }
-    })
+    try {
+      await prisma.user.update({
+        where: {
+          id: req.user?.id
+        },
+        data: {
+          email,
+          verificationToken: token
+        }
+      })
+    } catch (error) {
+      return res.status(400).json({ error: 'Email already in use' })
+    }
 
     await sendEmail({
       to: email,

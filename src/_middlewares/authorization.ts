@@ -53,7 +53,18 @@ export function authorization(fn: (req: NextApiRequestWithUser, res: NextApiResp
       }
     }
 
-    req.user = authData
+    const user = await prisma.user.findFirst({
+      where: {
+        id: authData?.id as string
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true
+      }
+    }) as UserAuthSafe
+
+    req.user = user
     await fn(req, res)
   }
 }
