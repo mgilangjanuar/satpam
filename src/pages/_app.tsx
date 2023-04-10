@@ -1,49 +1,28 @@
 import Shell, { MenuItem, ShellContext } from '@/components/shell'
 import { UserContext, UserContextAttributes } from '@/contexts/user'
-import { f } from '@/lib/fetch'
+import { useProtectedPages } from '@/hooks/useProtectedPages'
+import { useUpdateHeader } from '@/hooks/useUpdateHeader'
+import { useUser } from '@/hooks/useUser'
 import { ColorScheme, ColorSchemeProvider, MantineProvider } from '@mantine/core'
 import { Notifications } from '@mantine/notifications'
 import type { AppProps } from 'next/app'
 import Head from 'next/head'
-import { useRouter } from 'next/router'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 import '@/styles/globals.css'
 
 export default function App({ Component, pageProps }: AppProps) {
-  const router = useRouter()
   const [colorScheme, setColorScheme] = useState<ColorScheme>('light')
+
   const [user, setUser] = useState<UserContextAttributes | null>(null)
-  const [completeGetUser, setCompleteGetUser] = useState(true)
+  const [completeGetUser, setCompleteGetUser] = useState(false)
+
   const [menu, setMenu] = useState<MenuItem[]>([])
   const [menuHeader, setMenuHeader] = useState<MenuItem[]>([])
 
-  useEffect(() => {
-    setCompleteGetUser(true)
-    f.get('/api/auth/me')
-    .then(({ user }) => {
-      setUser(user)
-      setCompleteGetUser(false)
-    })
-    .catch(() => {
-      setUser(null)
-      setCompleteGetUser(false)
-    })
-  }, [])
-
-  useEffect(() => {
-    if (!user) {
-      setMenuHeader([
-        { label: 'Login', href: '/auth/login' }
-      ])
-    } else {
-      setMenuHeader([
-        ...router.pathname.startsWith('/dashboard') ? [] : [
-          { label: 'Dashboard', href: '/dashboard' }
-        ]
-      ])
-    }
-  }, [user, router.pathname])
+  useUser({ setUser, setCompleteGetUser })
+  useUpdateHeader({ user, setMenuHeader })
+  useProtectedPages({ user, completeGetUser })
 
   return <>
     <Head>

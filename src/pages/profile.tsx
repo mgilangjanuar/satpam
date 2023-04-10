@@ -5,7 +5,6 @@ import { ActionIcon, Box, Button, Col, Container, Divider, Grid, Group, Password
 import { useForm } from '@mantine/form'
 import { showNotification } from '@mantine/notifications'
 import { IconCheck } from '@tabler/icons-react'
-import { useRouter } from 'next/router'
 import { useContext, useEffect, useState } from 'react'
 
 interface NameForm {
@@ -23,8 +22,7 @@ interface PasswordForm {
 }
 
 export default function Profile() {
-  const router = useRouter()
-  const { user, completeGetUser, setUser } = useContext(UserContext)
+  const { user, setUser } = useContext(UserContext)
   const [loadingName, setLoadingName] = useState(false)
   const [loadingEmail, setLoadingEmail] = useState(false)
   const [loadingPassword, setLoadingPassword] = useState(false)
@@ -129,12 +127,6 @@ export default function Profile() {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user])
-
-  useEffect(() => {
-    if (!completeGetUser && !user) {
-      router.push('/auth/login')
-    }
-  }, [completeGetUser, user, router])
 
   return <Container>
     <Grid>

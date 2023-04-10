@@ -12,6 +12,6 @@ export const UserContext = createContext<{
   setUser: (user: UserContextAttributes | null) => void
 }>({
   user: null,
-  completeGetUser: true,
+  completeGetUser: false,
   setUser: () => {},
 })
