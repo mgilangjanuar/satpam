@@ -1,4 +1,5 @@
 import { NextApiRequestWithUser, authorization } from '@/_middlewares/authorization'
+import { devicevalidation } from '@/_middlewares/devicevalidation'
 import { wrapper } from '@/_middlewares/wrapper'
 import { prisma } from '@/lib/prisma'
 import { Authenticator } from '@prisma/client'
@@ -11,7 +12,7 @@ type Data = {
   error?: string
 }
 
-export default authorization(wrapper(async (
+export default authorization(devicevalidation(wrapper(async (
   req: NextApiRequestWithUser,
   res: NextApiResponse<Data>
 ) => {
@@ -121,4 +122,4 @@ export default authorization(wrapper(async (
   }
 
   return res.status(405).json({ error: 'Method not allowed' })
-}))
+})))

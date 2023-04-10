@@ -8,7 +8,9 @@ import { genSync } from 'random-web-token'
 import { UAParser } from 'ua-parser-js'
 
 type Data = {
+  id?: string,
   privateKey?: string,
+  deviceId?: string,
   error?: string
 }
 
@@ -32,6 +34,9 @@ export default wrapper(async (
     rsa.generateKeyPair()
 
     const user = await prisma.user.create({
+      select: {
+        id: true
+      },
       data: {
         name,
         email,
@@ -43,10 +48,12 @@ export default wrapper(async (
     })
 
     const ua = new UAParser(req.headers['user-agent']).getResult()
-    await prisma.device.create({
+    const device = await prisma.device.create({
+      select: {
+        id: true
+      },
       data: {
         name: `${ua.browser.name} (${ua.os.name} ${ua.device.vendor})`,
-        token: genSync('extra', 72),
         userId: user.id,
       }
     })
@@ -57,7 +64,11 @@ export default wrapper(async (
       token
     })
 
-    return res.status(200).json({ privateKey: rsa.exportKey('private') })
+    return res.status(200).json({
+      id: user.id,
+      privateKey: rsa.exportKey('private'),
+      deviceId: device.id
+    })
   }
 
   return res.status(405).json({ error: 'Method not allowed' })
