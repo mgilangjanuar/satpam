@@ -24,6 +24,7 @@ model User {
   updatedAt           DateTime  @updatedAt       @db.Timestamptz(3) @map("updated_at")
   deletedAt           DateTime? @db.Timestamptz(3) @map("deleted_at")
   services            Service[]
+  devices             Device[]
 
   @@map("users")
 }
@@ -67,4 +68,16 @@ model Authenticator {
   service   Service  @relation(fields: [serviceId], references: [id])
 
   @@map("authenticators")
+}
+
+model Device {
+  id        String   @id     @default(nanoid())
+  name      String
+  token     String
+  userId    String   @map("user_id")
+  createdAt DateTime @default(now())  @db.Timestamptz(3) @map("created_at")
+  updatedAt DateTime @updatedAt       @db.Timestamptz(3) @map("updated_at")
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@map("devices")
 }
