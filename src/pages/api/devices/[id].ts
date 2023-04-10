@@ -5,7 +5,7 @@ import { Device } from '@prisma/client'
 import type { NextApiResponse } from 'next'
 
 type Data = {
-  device?: Device,
+  device?: Partial<Device>,
   error?: string
 }
 
@@ -16,6 +16,12 @@ export default authorization(wrapper(async (
   if (req.method === 'GET') {
     const { id } = req.query
     const device = await prisma.device.findFirst({
+      select: {
+        id: true,
+        name: true,
+        createdAt: true,
+        updatedAt: true,
+      },
       where: {
         id: id as string,
         userId: req.user?.id as string

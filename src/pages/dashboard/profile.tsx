@@ -128,10 +128,10 @@ export default function Profile() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user])
 
-  return <Container>
+  return <Container fluid>
     <Grid>
-      <Col span={12} md={8} offsetMd={2} sm={10} offsetSm={1}>
-        <Title order={3}>
+      <Col span={12} lg={6} md={8} sm={10}>
+        <Title order={2}>
           Hello, {user?.name}!
         </Title>
 
