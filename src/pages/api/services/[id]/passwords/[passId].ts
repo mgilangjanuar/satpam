@@ -3,6 +3,7 @@ import { wrapper } from '@/_middlewares/wrapper'
 import { prisma } from '@/lib/prisma'
 import { Password } from '@prisma/client'
 import type { NextApiResponse } from 'next'
+import NodeRSA from 'node-rsa'
 import StringCrypto from 'string-crypto'
 
 type Data = {
@@ -54,12 +55,37 @@ export default authorization(wrapper(async (
       return res.status(404).json({ error: 'Password not found' })
     }
 
+    let encryptString: ((str: string, password: string) => string) | undefined = undefined
+    if (req.body.username || req.body.password) {
+      const user = await prisma.user.findUnique({
+        select: {
+          publicKey: true
+        },
+        where: {
+          id: req.user?.id as string
+        }
+      })
+      if (!user) {
+        return res.status(400).json({ error: 'User not found' })
+      }
+
+      const rsa = new NodeRSA()
+      rsa.importKey(user.publicKey)
+
+      encryptString = new StringCrypto({
+        digest: process.env.DIGEST as string
+      }).encryptString
+    }
+
+
     await prisma.password.update({
       where: {
         id: password.id
       },
       data: {
-        ...req.body
+        ...req.body,
+        ...req.body.username && encryptString ? { username: encryptString(req.body.username, process.env.ENCRYPT_KEY as string) } : {},
+        ...req.body.password && encryptString ? { password: encryptString(req.body.password, process.env.ENCRYPT_KEY as string) } : {},
       }
     })
 
