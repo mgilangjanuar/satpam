@@ -1,7 +1,7 @@
 import pkg from '@/../package.json'
 import { UserContext } from '@/contexts/user'
 import { f } from '@/lib/fetch'
-import { ActionIcon, Box, Button, Col, Container, Divider, Grid, Group, PasswordInput, Text, TextInput, Title } from '@mantine/core'
+import { ActionIcon, Box, Button, Col, Container, Divider, Grid, Group, Paper, PasswordInput, Text, TextInput, Title } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { showNotification } from '@mantine/notifications'
 import { IconCheck } from '@tabler/icons-react'
@@ -135,86 +135,86 @@ export default function Profile() {
           Hello, {user?.name}!
         </Title>
 
-        <form onSubmit={formName.onSubmit(updateName)}>
-          <Group mt="md" align="end">
-            <TextInput
-              label="Name"
-              style={{ flexGrow: 1 }}
-              required
-              withAsterisk
-              {...formName.getInputProps('name')}
-            />
-            <ActionIcon
-              size="lg"
-              type="submit"
-              color="teal"
-              variant="subtle"
-              loading={loadingName}>
-              <IconCheck size={18} />
-            </ActionIcon>
-          </Group>
-        </form>
-
-        <form onSubmit={formEmail.onSubmit(updateEmail)}>
-          <Group mt="md" align="end">
-            <TextInput
-              label="Email"
-              type="email"
-              style={{ flexGrow: 1 }}
-              required
-              withAsterisk
-              description="You will need to verify your new email address"
-              {...formEmail.getInputProps('email')}
-            />
-            <ActionIcon
-              size="lg"
-              type="submit"
-              color="teal"
-              variant="subtle"
-              loading={loadingEmail}>
-              <IconCheck size={18} />
-            </ActionIcon>
-          </Group>
-        </form>
-
-        <Divider my="xl" label="Danger Zone" />
-
-        <form onSubmit={formPassword.onSubmit(updatePassword)}>
-          <Group align="end">
-            <Box style={{ flexGrow: 1 }}>
-              <PasswordInput
-                label="Old Password"
+        <Paper p="md" mt="lg" pb="xl" mb="xl" shadow="xs">
+          <form onSubmit={formName.onSubmit(updateName)}>
+            <Group align="end">
+              <TextInput
+                label="Name"
+                style={{ flexGrow: 1 }}
                 required
                 withAsterisk
-                {...formPassword.getInputProps('password')}
+                {...formName.getInputProps('name')}
               />
-              <PasswordInput
-                mt="md"
-                label="New Password"
-                required
-                withAsterisk
-                {...formPassword.getInputProps('newPassword')}
-              />
-              <PasswordInput
-                mt="md"
-                label="New Password Confirmation"
-                required
-                withAsterisk
-                {...formPassword.getInputProps('confirmNewPassword')}
-              />
-            </Box>
-            <ActionIcon
-              size="lg"
-              type="submit"
-              color="teal"
-              variant="subtle"
-              loading={loadingPassword}>
-              <IconCheck size={18} />
-            </ActionIcon>
-          </Group>
-        </form>
+              <ActionIcon
+                size="lg"
+                type="submit"
+                color="teal"
+                variant="subtle"
+                loading={loadingName}>
+                <IconCheck size={18} />
+              </ActionIcon>
+            </Group>
+          </form>
 
-        <Divider mt="xl" />
+          <form onSubmit={formEmail.onSubmit(updateEmail)}>
+            <Group mt="md" align="end">
+              <TextInput
+                label="Email"
+                type="email"
+                style={{ flexGrow: 1 }}
+                required
+                withAsterisk
+                description="You will need to verify your new email address"
+                {...formEmail.getInputProps('email')}
+              />
+              <ActionIcon
+                size="lg"
+                type="submit"
+                color="teal"
+                variant="subtle"
+                loading={loadingEmail}>
+                <IconCheck size={18} />
+              </ActionIcon>
+            </Group>
+          </form>
+
+          <Divider my="xl" label="Danger Zone" />
+
+          <form onSubmit={formPassword.onSubmit(updatePassword)}>
+            <Group align="end">
+              <Box style={{ flexGrow: 1 }}>
+                <PasswordInput
+                  label="Old Password"
+                  required
+                  withAsterisk
+                  {...formPassword.getInputProps('password')}
+                />
+                <PasswordInput
+                  mt="md"
+                  label="New Password"
+                  required
+                  withAsterisk
+                  {...formPassword.getInputProps('newPassword')}
+                />
+                <PasswordInput
+                  mt="md"
+                  label="New Password Confirmation"
+                  required
+                  withAsterisk
+                  {...formPassword.getInputProps('confirmNewPassword')}
+                />
+              </Box>
+              <ActionIcon
+                size="lg"
+                type="submit"
+                color="teal"
+                variant="subtle"
+                loading={loadingPassword}>
+                <IconCheck size={18} />
+              </ActionIcon>
+            </Group>
+          </form>
+        </Paper>
 
         <Grid mt="lg">
           <Col span={12} md={6} offsetMd={3}>

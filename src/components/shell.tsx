@@ -14,7 +14,7 @@ export interface MenuItem {
 
 function HeaderButtonLink(props: ButtonProps & LinkProps & { icon?: ReactNode }) {
   const location = useRouter()
-  const isActive = location.pathname.split('/').slice(0, 2).join('/') === props.href
+  const isActive = location.pathname === props.href
 
   return <Button
     variant="subtle"
@@ -33,7 +33,7 @@ function HeaderButtonLink(props: ButtonProps & LinkProps & { icon?: ReactNode })
 
 function NavbarButtonLink(props: UnstyledButtonProps & LinkProps & { icon?: ReactNode }) {
   const location = useRouter()
-  const isActive = location.pathname.split('/').slice(0, 2).join('/') === props.href
+  const isActive = location.pathname === props.href
 
   return <UnstyledButton
     sx={(theme) => ({
