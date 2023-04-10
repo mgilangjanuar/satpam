@@ -1,4 +1,4 @@
-import { version } from '@/../package.json'
+import pkg from '@/../package.json'
 import { UserContext } from '@/contexts/user'
 import { f } from '@/lib/fetch'
 import { ActionIcon, Box, Button, Col, Container, Divider, Grid, Group, PasswordInput, Text, TextInput, Title } from '@mantine/core'
@@ -214,13 +214,15 @@ export default function Profile() {
           </Group>
         </form>
 
-        <Grid mt="xl">
+        <Divider mt="xl" />
+
+        <Grid mt="lg">
           <Col span={12} md={6} offsetMd={3}>
-            <Button mt="xl" color="red" fullWidth onClick={logout}>
+            <Button color="red" fullWidth onClick={logout}>
               Logout
             </Button>
             <Text ta="center" mt="xs" color="dimmed" size="sm">
-              v{version}
+              v{pkg.version}
             </Text>
           </Col>
         </Grid>

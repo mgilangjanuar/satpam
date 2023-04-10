@@ -3,6 +3,7 @@ import { UserContext } from '@/contexts/user'
 import { useProtectedPages } from '@/hooks/useProtectedPages'
 import { useSetupStates } from '@/hooks/useSetupStates'
 import { useUpdateHeader } from '@/hooks/useUpdateHeader'
+import { useUpdateMenu } from '@/hooks/useUpdateMenu'
 import { useUser } from '@/hooks/useUser'
 import { ColorSchemeProvider, MantineProvider } from '@mantine/core'
 import { Notifications } from '@mantine/notifications'
@@ -26,6 +27,7 @@ export default function App({ Component, pageProps }: AppProps) {
   } = useSetupStates()
 
   useUser({ setUser, setCompleteGetUser })
+  useUpdateMenu({ setMenu })
   useUpdateHeader({ user, setMenuHeader })
   useProtectedPages({ user, completeGetUser })
 

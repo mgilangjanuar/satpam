@@ -15,10 +15,8 @@ export function useUpdateHeader({ user, setMenuHeader }: {
         { label: 'Login', href: '/auth/login' }
       ])
     } else {
-      setMenuHeader([
-        ...router.pathname.startsWith('/dashboard') ? [] : [
-          { label: 'Dashboard', href: '/dashboard' }
-        ]
+      setMenuHeader(router.pathname.startsWith('/dashboard') ? [] : [
+        { label: 'Dashboard', href: '/dashboard' }
       ])
     }
   }, [user, setMenuHeader, router.pathname])
