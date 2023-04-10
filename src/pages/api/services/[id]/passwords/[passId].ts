@@ -84,8 +84,12 @@ export default authorization(wrapper(async (
       },
       data: {
         ...req.body,
-        ...req.body.username && encryptString ? { username: encryptString(req.body.username, process.env.ENCRYPT_KEY as string) } : {},
-        ...req.body.password && encryptString ? { password: encryptString(req.body.password, process.env.ENCRYPT_KEY as string) } : {},
+        ...req.body.username && encryptString ? {
+          username: encryptString(req.body.username, process.env.ENCRYPT_KEY as string)
+        } : {},
+        ...req.body.password && encryptString ? {
+          password: encryptString(req.body.password, process.env.ENCRYPT_KEY as string)
+        } : {},
       }
     })
 

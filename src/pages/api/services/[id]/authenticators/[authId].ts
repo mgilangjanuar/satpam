@@ -83,8 +83,12 @@ export default authorization(wrapper(async (
       },
       data: {
         ...req.body,
-        ...req.body.name && encryptString ? { name: encryptString(req.body.name, process.env.ENCRYPT_KEY as string) } : {},
-        ...req.body.secret && encryptString ? { secret: encryptString(req.body.secret, process.env.ENCRYPT_KEY as string) } : {},
+        ...req.body.name && encryptString ? {
+          name: encryptString(req.body.name, process.env.ENCRYPT_KEY as string)
+        } : {},
+        ...req.body.secret && encryptString ? {
+          secret: encryptString(req.body.secret, process.env.ENCRYPT_KEY as string)
+        } : {},
       }
     })
 
