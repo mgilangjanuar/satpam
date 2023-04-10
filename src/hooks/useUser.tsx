@@ -1,14 +1,17 @@
 import { UserContextAttributes } from '@/contexts/user'
 import { f } from '@/lib/fetch'
-import { showNotification } from '@mantine/notifications'
+import { Box, Button, Group, Text } from '@mantine/core'
+import { notifications, showNotification } from '@mantine/notifications'
 import { useRouter } from 'next/router'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 export function useUser({ setUser, setCompleteGetUser }: {
   setUser: (user: UserContextAttributes | null) => void,
   setCompleteGetUser: (completeGetUser: boolean) => void
 }) {
   const router = useRouter()
+  const [userLoggedIn, setUserLoggedIn] = useState<UserContextAttributes | null>(null)
+  const [showNotif, setShowNotif] = useState(false)
 
   useEffect(() => {
     setCompleteGetUser(false)
@@ -16,19 +19,42 @@ export function useUser({ setUser, setCompleteGetUser }: {
     .then(({ user }) => {
       setUser(user)
       setCompleteGetUser(true)
-      if (!localStorage.getItem(`privateKey:${user.id}`) || !localStorage.getItem(`deviceId:${user.id}`)) {
-        showNotification({
-          title: 'Warning',
-          message: 'Your device is not registered. Please register your device to continue using the app.',
-          color: 'yellow',
-          onClick: () => router.push('/dashboard/devices'),
-          onClose: () => router.push('/dashboard/devices')
-        })
-      }
+      setUserLoggedIn(user)
     })
     .catch(() => {
       setUser(null)
       setCompleteGetUser(true)
     })
   }, [setCompleteGetUser, setUser, router])
+
+  useEffect(() => {
+    if (userLoggedIn && !showNotif) {
+      if (!localStorage.getItem(`privateKey:${userLoggedIn.id}`) || !localStorage.getItem(`deviceId:${userLoggedIn.id}`)) {
+        showNotification({
+          title: 'Warning',
+          id: 'device-not-registered',
+          message: <Box>
+            <Text>
+              Your device is not registered. Please register your device to continue using the app.
+            </Text>
+            <Group mt="md" position="right">
+              <Button
+                size="sm"
+                variant="subtle"
+                onClick={() => {
+                  router.push('/dashboard/devices')
+                  notifications.hide('device-not-registered')
+                }}
+              >
+                Register Device
+              </Button>
+            </Group>
+          </Box>,
+          color: 'yellow',
+        })
+        setShowNotif(true)
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userLoggedIn, showNotif])
 }

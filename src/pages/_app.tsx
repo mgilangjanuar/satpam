@@ -34,7 +34,7 @@ export default function App({ Component, pageProps }: AppProps) {
   return <>
     <Head>
       <title>Satpam | A secure and trusted password manager and 2FA</title>
-      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, maximum-scale=1, user-scalable=no" />
       <link rel="icon" href="/favicon.ico" />
       <meta name="description" content="Satpam is a secure and trusted password manager and 2FA" />
     </Head>

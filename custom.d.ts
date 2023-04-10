@@ -13,7 +13,7 @@ declare module 'react-qr-scanner' {
     /**
      * Scan event handler. Called every scan with the decoded value or null if no QR code was found.
      */
-    onScan: (result: string) => any,
+    onScan: (result: { text: string } | null) => any,
 
     /**
      * Called when the component is ready for use.
@@ -35,7 +35,7 @@ declare module 'react-qr-scanner' {
     /**
      *  Specify which camera direction should be used (if available). Options: `front` and `rear`.
      */
-    facingMode?: "rear" | "front",
+    facingMode?: "rear" | "front" | "user" | "environment",
 
     /**
      * If the device does not allow camera access (e.g. IOS Browsers, Safari) you can enable legacyMode to allow the user to take a picture (On a mobile device) or use an existing one. To trigger the image dialog just call the method openImageDialog from the parent component. Warning You must call the method from a user action (eg. click event on some element).
@@ -72,7 +72,9 @@ declare module 'react-qr-scanner' {
     /**
      * Existing MediaStream to use initially.
      */
-    initialStream?: MediaStream
+    initialStream?: MediaStream,
+
+    constraints?: MediaStreamConstraints,
   }
 
   function QrReader(props: Props): JSX.Element
