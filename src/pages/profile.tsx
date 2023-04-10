@@ -1,6 +1,7 @@
+import { version } from '@/../package.json'
 import { User } from '@/contexts/user'
 import { f } from '@/lib/fetch'
-import { ActionIcon, Box, Button, Col, Container, Divider, Grid, Group, PasswordInput, TextInput, Title } from '@mantine/core'
+import { ActionIcon, Box, Button, Col, Container, Divider, Grid, Group, PasswordInput, Text, TextInput, Title } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { showNotification } from '@mantine/notifications'
 import { IconCheck } from '@tabler/icons-react'
@@ -223,6 +224,9 @@ export default function Profile() {
             <Button mt="xl" color="red" fullWidth onClick={logout}>
               Logout
             </Button>
+            <Text ta="center" mt="xs" color="dimmed" size="sm">
+              v{version}
+            </Text>
           </Col>
         </Grid>
       </Col>
