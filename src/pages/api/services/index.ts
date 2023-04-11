@@ -55,13 +55,17 @@ export default authorization(devicevalidation(wrapper(async (
       return res.status(400).json({ error: 'Missing url' })
     }
 
-    await prisma.service.create({
-      data: {
-        url: url,
-        host: new URL(url).host,
-        userId: req.user?.id as string
-      }
-    })
+    try {
+      await prisma.service.create({
+        data: {
+          url: url,
+          host: new URL(url).host,
+          userId: req.user?.id as string
+        }
+      })
+    } catch (error) {
+      return res. status(400).json({ error: 'Invalid url' })
+    }
 
     return res.status(200).json({})
   }
