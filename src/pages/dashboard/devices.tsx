@@ -127,9 +127,32 @@ export default function Dashboard() {
   return <Container fluid>
     <Grid>
       <Col span={12} lg={6} md={8} sm={10}>
-        <Title order={2}>
-          Your Devices
-        </Title>
+        <Group position="apart" mb="lg">
+          <Title order={2}>
+            Your Devices
+          </Title>
+          <Menu withArrow>
+            <Menu.Target>
+              <Button size="sm" color="blue" variant="light">
+                Add Device
+              </Button>
+            </Menu.Target>
+            <Menu.Dropdown>
+              {qr ? <Menu.Item onClick={() => setModalOpened('qrcode')}>
+                <Group>
+                  <IconQrcode size={16} />
+                  <Text>Show QR Code</Text>
+                </Group>
+              </Menu.Item> : <></>}
+              <Menu.Item onClick={() => setModalOpened('qrreader')}>
+                <Group>
+                  <IconNetwork size={16} />
+                  <Text>Connect to Host</Text>
+                </Group>
+              </Menu.Item>
+            </Menu.Dropdown>
+          </Menu>
+        </Group>
 
         {devices.map(device => <Paper key={device.id} p="md" mt="md" withBorder>
           <Group position="apart" noWrap>
@@ -188,30 +211,6 @@ export default function Dashboard() {
             Added at {dayjs(device.createdAt).format('MMMM D, YYYY H:mm')}
           </Text>
         </Paper>)}
-
-        <Group mt="xl" position="right">
-          <Menu withArrow>
-            <Menu.Target>
-              <Button size="sm" color="blue" variant="light">
-                Add New Device
-              </Button>
-            </Menu.Target>
-            <Menu.Dropdown>
-              {qr ? <Menu.Item onClick={() => setModalOpened('qrcode')}>
-                <Group>
-                  <IconQrcode size={16} />
-                  <Text>Show QR Code</Text>
-                </Group>
-              </Menu.Item> : <></>}
-              <Menu.Item onClick={() => setModalOpened('qrreader')}>
-                <Group>
-                  <IconNetwork size={16} />
-                  <Text>Connect to Host</Text>
-                </Group>
-              </Menu.Item>
-            </Menu.Dropdown>
-          </Menu>
-        </Group>
       </Col>
     </Grid>
 
