@@ -16,7 +16,7 @@ export default function Dashboard() {
   const { user } = useContext(UserContext)
   const [devices, setDevices] = useState<Device[]>([])
   const [drawerOpened, setDrawerOpened] = useState<Device>()
-  const [modalOpened, setModalOpened] = useState<string>()
+  const [modalOpened, setModalOpened] = useState<'qrreader' | 'qrcode'>()
   const [thisDevice, setThisDevice] = useState<string | null>(null)
   const [privKey, setPrivKey] = useState<string | null>(null)
   const [camDevices, setCamDevices] = useState<MediaDeviceInfo[]>()
