@@ -1,10 +1,10 @@
 import { UserContext } from '@/contexts/user'
 import { f } from '@/lib/fetch'
-import { Badge, Box, Button, Col, Container, Drawer, Grid, Group, Image, List, Menu, Modal, Paper, Popover, Select, Text, TextInput, Title } from '@mantine/core'
+import { ActionIcon, Badge, Box, Button, Col, Container, Drawer, Grid, Group, Image, List, MediaQuery, Menu, Modal, Paper, Popover, Select, Text, TextInput, Title } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { showNotification } from '@mantine/notifications'
 import { Device } from '@prisma/client'
-import { IconNetwork, IconQrcode } from '@tabler/icons-react'
+import { IconDevicesOff, IconDotsVertical, IconEdit, IconNetwork, IconQrcode } from '@tabler/icons-react'
 import dayjs from 'dayjs'
 import NodeRSA from 'node-rsa'
 import QrCode from 'qrcode'
@@ -131,43 +131,62 @@ export default function Dashboard() {
           Your Devices
         </Title>
 
-        {devices.map(device => <Paper key={device.id} p="md" mt="md" shadow="xs">
-          <Group>
-            <Text>
-              {device.name}
-            </Text>
-            {thisDevice === device.id ? <Badge size="sm">
-              this device
-            </Badge> : <></>}
+        {devices.map(device => <Paper key={device.id} p="md" mt="md" withBorder>
+          <Group position="apart" noWrap>
+            <Group>
+              <Text lineClamp={1}>
+                {device.name}
+              </Text>
+              {thisDevice === device.id ? <MediaQuery smallerThan="sm" styles={{ display: 'none' }}>
+                <Badge size="sm">
+                  this device
+                </Badge>
+              </MediaQuery> : <></>}
+            </Group>
+            <Menu withArrow closeOnItemClick={false}>
+              <Menu.Target>
+                <ActionIcon>
+                  <IconDotsVertical size={18} />
+                </ActionIcon>
+              </Menu.Target>
+              <Menu.Dropdown>
+                <Menu.Item closeMenuOnClick onClick={() => {
+                  setDrawerOpened(device)
+                  form.setValues(device)
+                }}>
+                  <Group>
+                    <IconEdit size={16} />
+                    <Text>
+                      Update
+                    </Text>
+                  </Group>
+                </Menu.Item>
+                <Popover width={280} withArrow>
+                  <Popover.Target>
+                    <Menu.Item color="red">
+                      <Group>
+                        <IconDevicesOff size={16} />
+                        <Text>Revoke</Text>
+                      </Group>
+                    </Menu.Item>
+                  </Popover.Target>
+                  <Popover.Dropdown>
+                    <Text color="dimmed">
+                      Are you sure you want to revoke this device?
+                    </Text>
+                    <Group mt="sm" position="right">
+                      <Button size="sm" color="red" onClick={() => remove(device.id)}>
+                        Yes, I&apos;m confirm
+                      </Button>
+                    </Group>
+                  </Popover.Dropdown>
+                </Popover>
+              </Menu.Dropdown>
+            </Menu>
           </Group>
           <Text color="dimmed" mt="xs">
             Added at {dayjs(device.createdAt).format('MMMM D, YYYY H:mm')}
           </Text>
-          <Group mt="lg">
-            <Button size="sm" color="yellow" variant="light" onClick={() => {
-              setDrawerOpened(device)
-              form.setValues(device)
-            }}>
-              Update
-            </Button>
-            <Popover width={280} withArrow>
-              <Popover.Target>
-                <Button size="sm" color="red" variant="light">
-                  Revoke
-                </Button>
-              </Popover.Target>
-              <Popover.Dropdown>
-                <Text>
-                  Are you sure you want to revoke this device?
-                </Text>
-                <Group mt="sm" position="right">
-                  <Button size="sm" color="red" onClick={() => remove(device.id)}>
-                    Yes, I&apos;m confirm
-                  </Button>
-                </Group>
-              </Popover.Dropdown>
-            </Popover>
-          </Group>
         </Paper>)}
 
         <Group mt="xl" position="right">
