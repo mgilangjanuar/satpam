@@ -30,14 +30,17 @@ export default authorization(devicevalidation(wrapper(async (
     }
 
     const { decryptString } = new StringCrypto({
+      salt: process.env.SALT,
       digest: process.env.DIGEST as string
     })
 
-    return res.status(200).json({ authenticator: {
-      ...authenticator,
-      name: decryptString(authenticator.name, process.env.ENCRYPT_KEY as string),
-      secret: decryptString(authenticator.secret, process.env.ENCRYPT_KEY as string)
-    } })
+    return res.status(200).json({
+      authenticator: {
+        ...authenticator,
+        name: decryptString(authenticator.name, process.env.ENCRYPT_KEY as string),
+        secret: decryptString(authenticator.secret, process.env.ENCRYPT_KEY as string)
+      }
+    })
   }
 
   if (req.method === 'PATCH') {
@@ -74,6 +77,7 @@ export default authorization(devicevalidation(wrapper(async (
       rsa.importKey(user.publicKey)
 
       encryptString = new StringCrypto({
+        salt: process.env.SALT,
         digest: process.env.DIGEST as string
       }).encryptString
     }

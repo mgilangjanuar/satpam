@@ -7,6 +7,7 @@ import { Service } from '@prisma/client'
 import type { NextApiResponse } from 'next'
 
 type Data = {
+  service?: Partial<Service>,
   services?: Service[],
   error?: string
 }
@@ -55,8 +56,12 @@ export default authorization(devicevalidation(wrapper(async (
       return res.status(400).json({ error: 'Missing url' })
     }
 
+    let service: Partial<Service>
     try {
-      await prisma.service.create({
+      service = await prisma.service.create({
+        select: {
+          id: true
+        },
         data: {
           url: url,
           host: new URL(url).host,
@@ -67,7 +72,7 @@ export default authorization(devicevalidation(wrapper(async (
       return res. status(400).json({ error: 'Invalid url' })
     }
 
-    return res.status(200).json({})
+    return res.status(200).json({ service })
   }
   return res.status(405).json({ error: 'Method not allowed' })
 })))

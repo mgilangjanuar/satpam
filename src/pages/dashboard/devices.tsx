@@ -249,7 +249,7 @@ export default function Dashboard() {
           {privKey ? <Image src={qr} alt="qr" /> : <></>}
         </Box>
         <Box p="sm">
-          <List type="ordered" spacing="xs">
+          <List type="ordered">
             <List.Item>
               <Text>
                 Login with your account on your device.
@@ -328,7 +328,7 @@ export default function Dashboard() {
             }} />
         </Box>}
         <Box p="sm">
-          <List type="ordered" spacing="xs">
+          <List type="ordered">
             <List.Item>
               <Text>
                 Login with your account on your host device.

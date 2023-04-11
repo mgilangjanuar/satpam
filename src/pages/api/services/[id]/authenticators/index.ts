@@ -38,6 +38,7 @@ export default authorization(devicevalidation(wrapper(async (
     }
 
     const { decryptString } = new StringCrypto({
+      salt: process.env.SALT,
       digest: process.env.DIGEST as string
     })
 
@@ -84,6 +85,7 @@ export default authorization(devicevalidation(wrapper(async (
     rsa.importKey(user.publicKey)
 
     const { encryptString } = new StringCrypto({
+      salt: process.env.SALT,
       digest: process.env.DIGEST as string
     })
     await prisma.authenticator.create({
