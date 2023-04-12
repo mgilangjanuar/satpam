@@ -1,20 +1,16 @@
 import CreateCredential from '@/components/dashboard/createCredential'
+import DetailsCredential from '@/components/dashboard/detailsCredential'
 import { UserContext } from '@/contexts/user'
 import useCreateCredential from '@/hooks/useCreateCredential'
+import useUpdateCredential from '@/hooks/useUpdateCredential'
 import { f } from '@/lib/fetch'
-import { ActionIcon, Box, Button, Col, Container, CopyButton, Drawer, Grid, Group, Menu, Paper, PasswordInput, Popover, Progress, Stack, Tabs, Text, TextInput, Title, Tooltip, UnstyledButton } from '@mantine/core'
+import { ActionIcon, Button, Col, Container, Grid, Group, Paper, Text, TextInput, Title, UnstyledButton } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { showNotification } from '@mantine/notifications'
-import { Authenticator, Password, Service } from '@prisma/client'
-import { IconCheck, IconCopy, IconDotsVertical, IconEdit, IconSearch, IconTrash } from '@tabler/icons-react'
+import { Service } from '@prisma/client'
+import { IconSearch } from '@tabler/icons-react'
 import dayjs from 'dayjs'
-import NodeRSA from 'node-rsa'
 import { useCallback, useContext, useEffect, useState } from 'react'
-import totp from 'totp-generator'
-
-interface UpdateURLForm {
-  url: string
-}
 
 interface SearchForm {
   urlContains: string
@@ -26,12 +22,7 @@ export default function Dashboard() {
   const [opened, setOpened] = useState<boolean>(false)
   const [urlData, setUrlData] = useState<{ label: string, value: string }[]>([])
   const [tab, setTab] = useState<'password' | 'authenticator'>('password')
-  const [tabDetails, setTabDetails] = useState<'password' | 'authenticator'>('password')
-  const [openService, setOpenService] = useState<Service>()
-  const [passwords, setPasswords] = useState<Password[]>([])
-  const [auths, setAuths] = useState<(Authenticator)[]>([])
-  const [tokens, setTokens] = useState<{ id: string, token: string, remaining: number }[]>([])
-  const [loadingUpdateURL, setLoadingUpdateURL] = useState<boolean>(false)
+  const [openedService, setOpenedService] = useState<Service>()
   const [loadingSearch, setLoadingSearch] = useState<boolean>(false)
   const [filters, setFilters] = useState<{
     skip: number,
@@ -45,12 +36,7 @@ export default function Dashboard() {
     search: {}
   })
   const { form } = useCreateCredential()
-
-  const updateURLForm = useForm<UpdateURLForm>({
-    initialValues: {
-      url: ''
-    }
-  })
+  const { form: updateURLForm } = useUpdateCredential()
   const searchForm = useForm<SearchForm>({
     initialValues: {
       urlContains: ''
@@ -85,150 +71,9 @@ export default function Dashboard() {
     }
   }, [user, filters])
 
-  const updateService = async (data: UpdateURLForm) => {
-    setLoadingUpdateURL(true)
-    try {
-      await f.patch(`/api/services/${openService?.id}`, {
-        url: data.url
-      }, {
-        'x-device-id': localStorage.getItem(`deviceId:${user?.id}`) || ''
-      })
-
-      fetchAll()
-      setOpenService(s => ({ ...s, url: data.url } as Service))
-    } catch (error: any) {
-      showNotification({
-        title: 'Error',
-        message: error.message,
-        color: 'red',
-      })
-    } finally {
-      setLoadingUpdateURL(false)
-    }
-  }
-
-  const removePass = async (id: string) => {
-    try {
-      await f.delete(`/api/services/${openService?.id}/passwords/${id}`, {
-        'x-device-id': localStorage.getItem(`deviceId:${user?.id}`) || ''
-      })
-      setPasswords(p => p.filter(p => p.id !== id))
-      showNotification({
-        title: 'Success',
-        message: 'Account removed',
-        color: 'green',
-      })
-    } catch (error: any) {
-      showNotification({
-        title: 'Error',
-        message: error.message,
-        color: 'red',
-      })
-    }
-  }
-
-  const removeAuth = async (id: string) => {
-    try {
-      await f.delete(`/api/services/${openService?.id}/authenticators/${id}`, {
-        'x-device-id': localStorage.getItem(`deviceId:${user?.id}`) || ''
-      })
-      setAuths(a => a.filter(a => a.id !== id))
-      showNotification({
-        title: 'Success',
-        message: 'Authenticator removed',
-        color: 'green',
-      })
-    } catch (error: any) {
-      showNotification({
-        title: 'Error',
-        message: error.message,
-        color: 'red',
-      })
-    }
-  }
-
-  const removeService = async () => {
-    try {
-      await f.delete(`/api/services/${openService?.id}`, {
-        'x-device-id': localStorage.getItem(`deviceId:${user?.id}`) || ''
-      })
-      setServices(s => s.filter(s => s.id !== openService?.id))
-      setOpenService(undefined)
-      showNotification({
-        title: 'Success',
-        message: 'Service removed',
-        color: 'green',
-      })
-    } catch (error: any) {
-      showNotification({
-        title: 'Error',
-        message: error.message,
-        color: 'red',
-      })
-    }
-  }
-
   useEffect(() => {
     fetchAll()
   }, [fetchAll])
-
-  useEffect(() => {
-    if (openService && user?.id) {
-      f.get(`/api/services/${openService.id}/passwords?${
-        new URLSearchParams({
-          _skip: '0',
-          _take: '0'
-        })}`, {
-        'x-device-id': localStorage.getItem(`deviceId:${user?.id}`) || ''
-      }).then(({ passwords }) => {
-        setPasswords(passwords.map((p: Password) => {
-          const rsa = new NodeRSA()
-          rsa.importKey(localStorage.getItem(`privateKey:${user?.id}`) || '')
-          return {
-            ...p,
-            username: rsa.decrypt(p.username, 'utf8'),
-            password: rsa.decrypt(p.password, 'utf8')
-          }
-        }))
-      })
-      f.get(`/api/services/${openService.id}/authenticators?${
-        new URLSearchParams({
-          _skip: '0',
-          _take: '0'
-        })}`, {
-        'x-device-id': localStorage.getItem(`deviceId:${user?.id}`) || ''
-      }).then(({ authenticators }) => {
-        setAuths(authenticators.map((a: Authenticator) => {
-          const rsa = new NodeRSA()
-          rsa.importKey(localStorage.getItem(`privateKey:${user?.id}`) || '')
-          return { ...a,
-            name: rsa.decrypt(a.name, 'utf8'),
-            secret: rsa.decrypt(a.secret, 'utf8')
-          }
-        }))
-      })
-    }
-  }, [openService, user?.id])
-
-  useEffect(() => {
-    if (auths?.length && openService) {
-      setTimeout(() => {
-        setTokens(auths.map(a => {
-          const time = Date.now()
-          return {
-            id: a.id,
-            remaining: a.period - Math.floor((time / 1000) % a.period),
-            token: totp(a.secret, {
-              digits: a.digits,
-              period: a.period,
-              timestamp: time,
-              algorithm: a.algorithm as any
-            })
-          }
-        }))
-      }, 1000)
-    }
-  }, [tokens, openService, auths, user?.id])
 
   return <Container fluid>
     <Grid>
@@ -273,7 +118,7 @@ export default function Dashboard() {
             updateURLForm.setValues({
               url: service.url
             })
-            setOpenService(service)
+            setOpenedService(service)
           }}>
             <Paper
               p="md"
@@ -300,256 +145,19 @@ export default function Dashboard() {
       onFinish={serviceId => {
         fetchAll()
         if (!serviceId.startsWith('new_')) {
-          setOpenService(services.find(s => s.id === serviceId))
+          setOpenedService(services.find(s => s.id === serviceId))
         }
       }}
     />
 
-    <Drawer
-      position="right"
-      opened={Boolean(openService)}
-      onClose={() => setOpenService(undefined)}
-      title={openService?.url.split('://')[1].replace(/^\/|\/$/g, '')}>
-      <Stack mih="calc(100vh - 70px)">
-        <form onSubmit={updateURLForm.onSubmit(updateService)}>
-          <Group align="end">
-            <TextInput
-              style={{ flexGrow: 1 }}
-              placeholder="https://example.com"
-              type="url"
-              {...updateURLForm.getInputProps('url')}
-            />
-            <ActionIcon
-              size="lg"
-              type="submit"
-              color="teal"
-              variant="subtle"
-              loading={loadingUpdateURL}>
-              <IconCheck size={18} />
-            </ActionIcon>
-          </Group>
-        </form>
-
-        <Tabs value={tabDetails} onTabChange={t => setTabDetails(t as 'password' | 'authenticator')} style={{ flexGrow: 1 }}>
-          <Tabs.List>
-            <Tabs.Tab value="password">Password</Tabs.Tab>
-            <Tabs.Tab value="authenticator">Authenticator</Tabs.Tab>
-          </Tabs.List>
-          <Tabs.Panel value="password">
-            {passwords.map(password => <Paper key={password.id} p="md" mt="md" withBorder>
-              <Box>
-                <Group position="apart" align="start">
-                  <Text component="strong" size="sm" lineClamp={1}>
-                    Username
-                  </Text>
-                  <Menu withArrow closeOnItemClick={false} position="bottom-end">
-                    <Menu.Target>
-                      <ActionIcon size="sm">
-                        <IconDotsVertical size={16} />
-                      </ActionIcon>
-                    </Menu.Target>
-                    <Menu.Dropdown>
-                      <Menu.Item closeMenuOnClick onClick={() => {
-                        form.setValues({
-                          username: password.username,
-                          password: password.password,
-                          passwordId: password.id,
-                          url: openService?.id
-                        })
-                        setTab('password')
-                        setOpenService(undefined)
-                        setOpened(true)
-                      }}>
-                        <Group>
-                          <IconEdit size={16} />
-                          <Text>
-                            Update
-                          </Text>
-                        </Group>
-                      </Menu.Item>
-                      <Popover width={280} withArrow position="bottom-end">
-                        <Popover.Target>
-                          <Menu.Item color="red">
-                            <Group>
-                              <IconTrash size={16} />
-                              <Text>Remove</Text>
-                            </Group>
-                          </Menu.Item>
-                        </Popover.Target>
-                        <Popover.Dropdown>
-                          <Text component="p" mt="xs" mb="md">
-                            Are you sure you want to remove this account?
-                          </Text>
-                          <Group position="right">
-                            <Button size="sm" color="red" onClick={() => removePass(password.id)}>
-                              Yes, I&apos;m confirm
-                            </Button>
-                          </Group>
-                        </Popover.Dropdown>
-                      </Popover>
-                    </Menu.Dropdown>
-                  </Menu>
-                </Group>
-                <Group spacing="xs">
-                  <Text>{password.username}</Text>
-                  <CopyButton value={password.username} timeout={2000}>
-                    {({ copied, copy }) => (
-                      <Tooltip label={copied ? 'Copied' : 'Copy'} withArrow position="right">
-                        <ActionIcon color={copied ? 'teal' : 'gray'} onClick={copy}>
-                          {copied ? <IconCheck size="1rem" /> : <IconCopy size="1rem" />}
-                        </ActionIcon>
-                      </Tooltip>
-                    )}
-                  </CopyButton>
-                </Group>
-              </Box>
-              <Box mt="md">
-                <Text component="strong" size="sm">
-                  Password
-                </Text>
-                <Group spacing="xs" mt="xs">
-                  <PasswordInput readOnly value={password.password} style={{ flexGrow: 1 }} />
-                  <CopyButton value={password.password} timeout={2000}>
-                    {({ copied, copy }) => (
-                      <Tooltip label={copied ? 'Copied' : 'Copy'} withArrow position="right">
-                        <ActionIcon color={copied ? 'teal' : 'gray'} onClick={copy}>
-                          {copied ? <IconCheck size="1rem" /> : <IconCopy size="1rem" />}
-                        </ActionIcon>
-                      </Tooltip>
-                    )}
-                  </CopyButton>
-                </Group>
-              </Box>
-            </Paper>)}
-          </Tabs.Panel>
-          <Tabs.Panel value="authenticator">
-            {auths.map(auth => <Paper key={auth.id} p="md" mt="md" withBorder>
-              <Box>
-                <Group position="apart" align="start">
-                  <Text component="strong" size="sm" lineClamp={1}>
-                    Name
-                  </Text>
-                  <Menu withArrow closeOnItemClick={false} position="bottom-end">
-                    <Menu.Target>
-                      <ActionIcon size="sm">
-                        <IconDotsVertical size={16} />
-                      </ActionIcon>
-                    </Menu.Target>
-                    <Menu.Dropdown>
-                      <Menu.Item closeMenuOnClick onClick={() => {
-                        form.setValues({
-                          name: auth.name,
-                          secret: auth.secret,
-                          digits: auth.digits,
-                          period: auth.period,
-                          algorithm: auth.algorithm,
-                          authenticatorId: auth.id,
-                          url: openService?.id
-                        })
-                        setTab('authenticator')
-                        setOpenService(undefined)
-                        setOpened(true)
-                      }}>
-                        <Group>
-                          <IconEdit size={16} />
-                          <Text>
-                            Update
-                          </Text>
-                        </Group>
-                      </Menu.Item>
-                      <Popover width={280} withArrow position="bottom-end">
-                        <Popover.Target>
-                          <Menu.Item color="red">
-                            <Group>
-                              <IconTrash size={16} />
-                              <Text>Remove</Text>
-                            </Group>
-                          </Menu.Item>
-                        </Popover.Target>
-                        <Popover.Dropdown>
-                          <Text component="p" mt="xs" mb="md">
-                            Are you sure you want to remove this authenticator?
-                          </Text>
-                          <Group position="right">
-                            <Button size="sm" color="red" onClick={() => removeAuth(auth.id)}>
-                              Yes, I&apos;m confirm
-                            </Button>
-                          </Group>
-                        </Popover.Dropdown>
-                      </Popover>
-                    </Menu.Dropdown>
-                  </Menu>
-                </Group>
-                <Text>{auth.name}</Text>
-              </Box>
-              <Box mt="md">
-                <Grid>
-                  <Col span={5}>
-                    <Text component="strong" size="sm">
-                      Token
-                    </Text>
-                    <Group spacing="xs">
-                      <Text>{tokens?.find(t => t.id === auth.id)?.token}</Text>
-                      <CopyButton value={tokens?.find(t => t.id === auth.id)?.token || ''} timeout={2000}>
-                        {({ copied, copy }) => (
-                          <Tooltip label={copied ? 'Copied' : 'Copy'} withArrow position="right">
-                            <ActionIcon color={copied ? 'teal' : 'gray'} onClick={copy}>
-                              {copied ? <IconCheck size="1rem" /> : <IconCopy size="1rem" />}
-                            </ActionIcon>
-                          </Tooltip>
-                        )}
-                      </CopyButton>
-                    </Group>
-                  </Col>
-                  <Col span={7}>
-                    <Text component="strong" size="sm">
-                      Expires in
-                    </Text>
-                    <Group>
-                      <Text>{tokens?.find(t => t.id === auth.id)?.remaining} sec</Text>
-                      <Progress
-                        size="sm"
-                        value={(tokens?.find(t => t.id === auth.id)?.remaining || 0) / auth.period * 100} style={{ flexGrow: 1 }} />
-                    </Group>
-                  </Col>
-                </Grid>
-              </Box>
-            </Paper>)}
-          </Tabs.Panel>
-        </Tabs>
-        <Group position="right">
-          <Button variant="light" onClick={() => {
-            form.reset()
-            form.setValues({
-              url: openService?.id,
-              authenticatorId: undefined,
-              passwordId: undefined
-            })
-            setOpenService(undefined)
-            setTab(tabDetails)
-            setOpened(true)
-          }}>
-            Add {tabDetails === 'password' ? 'a password' : 'an authenticator'}
-          </Button>
-          <Popover width={280} withArrow position="top-end">
-            <Popover.Target>
-              <Button variant="light" color="red">
-                Remove all
-              </Button>
-            </Popover.Target>
-            <Popover.Dropdown>
-              <Text component="p" mt="xs" mb="md">
-                Are you sure you want to remove all passwords and authenticators?
-              </Text>
-              <Group position="right">
-                <Button size="sm" color="red" onClick={removeService}>
-                  Yes, I&apos;m confirm
-                </Button>
-              </Group>
-            </Popover.Dropdown>
-          </Popover>
-        </Group>
-      </Stack>
-    </Drawer>
+    <DetailsCredential
+      formCreate={form}
+      form={updateURLForm}
+      setOpenedCreate={setOpened}
+      openedService={openedService}
+      setOpenedService={setOpenedService}
+      setTab={setTab}
+      onFinish={fetchAll}
+      setServices={setServices} />
   </Container>
 }
