@@ -54,13 +54,14 @@ Satpam is a secure and trusted password manager and 2FA. Built with [Next.js](ht
 
 | Name | Description | Default | Required |
 | --- | --- | --- | --- |
-| DATABASE_URL | Database URL | - | Yes |
-| SMTP_URL | SMTP URL | - | Yes |
-| EMAIL_FROM | Email sender | - | Yes |
-| BASE_URL | Base URL | - | Yes |
-| SECRET_KEY | Secret key | - | Yes |
-| ENCRYPT_KEY | Encryption key | - | Yes |
-| DIGEST | Digest algorithm | - | Yes |
+| `DATABASE_URL` | Database URL | - | Yes |
+| `SMTP_URL` | SMTP URL | - | Yes |
+| `EMAIL_FROM` | Email sender | - | Yes |
+| `BASE_URL` | Base URL | - | Yes |
+| `SECRET_KEY` | Secret key | - | Yes |
+| `ENCRYPT_KEY` | Encryption key | - | Yes |
+| `SALT` | Salt | - | Yes |
+| `DIGEST` | Digest algorithm | - | Yes |
 
 ## License
 
