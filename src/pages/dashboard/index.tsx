@@ -172,14 +172,14 @@ export default function Dashboard() {
   }, [fetchAll])
 
   useEffect(() => {
-    if (toggleQR) {
+    if (toggleQR && tabCreate === 'authenticator') {
       window.navigator.mediaDevices.enumerateDevices().then(devices => {
         const cams = devices.filter(device => device.kind === 'videoinput' && device.deviceId)
         setCamDevices(cams)
         setCamDeviceId(cams[0]?.deviceId)
       })
     }
-  }, [toggleQR])
+  }, [toggleQR, tabCreate])
 
   useEffect(() => {
     if (openService) {
@@ -281,7 +281,7 @@ export default function Dashboard() {
           withAsterisk
           searchable
           creatable
-          getCreateLabel={(query) => `+ Create new ${query}`}
+          getCreateLabel={(query) => `Add ${query}`}
           onCreate={(query) => {
             const v = { label: query, value: '' }
             setUrlData(data => [...data, v])
@@ -307,7 +307,12 @@ export default function Dashboard() {
             />
           </Tabs.Panel>
           <Tabs.Panel value="authenticator">
-            {toggleQR ? <>
+            <Switch
+              mt="md"
+              checked={toggleQR}
+              onChange={({ target: { checked } }) => setToggleQR(checked)}
+              label={toggleQR ? 'Switch to input secret' : 'Switch to QR scanner'} />
+            {toggleQR && tabCreate === 'authenticator' ? <>
               {camDevices?.length ? <Select
                 my="md"
                 data={camDevices.map(c => ({ value: c.deviceId, label: c.label }))}
@@ -372,11 +377,6 @@ export default function Dashboard() {
                 {...createForm.getInputProps('algorithm')}
               /> */}
             </>}
-            <Switch
-              mt="md"
-              checked={toggleQR}
-              onChange={({ target: { checked } }) => setToggleQR(checked)}
-              label={toggleQR ? 'Switch to input secret' : 'Switch to QR scanner'} />
           </Tabs.Panel>
         </Tabs>
 
