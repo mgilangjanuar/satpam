@@ -12,7 +12,7 @@ import { useCallback, useContext, useEffect, useState } from 'react'
 import QrReader from 'react-qr-scanner'
 import totp from 'totp-generator'
 
-interface CreateForm {
+interface Form {
   url: string,
   passwordId?: string,
   username?: string,
@@ -57,7 +57,7 @@ export default function Dashboard() {
     orderBy: 'url:asc',
     search: {}
   })
-  const createForm = useForm<CreateForm>({
+  const form = useForm<Form>({
     initialValues: {
       url: '',
       passwordId: '',
@@ -102,7 +102,7 @@ export default function Dashboard() {
     }
   }, [user, filters])
 
-  const create = async (data: CreateForm) => {
+  const save = async (data: Form) => {
     setLoadingCreate(true)
     try {
       let serviceId: string = data.url
@@ -159,7 +159,7 @@ export default function Dashboard() {
 
       fetchAll()
       setOpened(false)
-      createForm.reset()
+      form.reset()
       if (!serviceId.startsWith('new_')) {
         setOpenService(services.find(s => s.id === serviceId))
       }
@@ -337,7 +337,7 @@ export default function Dashboard() {
             Your Credentials
           </Title>
           <Button size="sm" color="blue" variant="light" onClick={() => {
-            createForm.reset()
+            form.reset()
             setOpened(true)
           }}>
             Create
@@ -372,8 +372,8 @@ export default function Dashboard() {
       position="right"
       opened={opened}
       onClose={() => setOpened(false)}
-      title={createForm.values.passwordId || createForm.values.authenticatorId ? 'Update a credential' : 'Create a credential'}>
-      <form onSubmit={createForm.onSubmit(create)}>
+      title={form.values.passwordId || form.values.authenticatorId ? 'Update a credential' : 'Create a credential'}>
+      <form onSubmit={form.onSubmit(save)}>
         <Select
           data={urlData}
           placeholder="Select or type a URL"
@@ -387,9 +387,9 @@ export default function Dashboard() {
             setUrlData(data => [...data, v])
             return v
           }}
-          {...createForm.getInputProps('url')} />
+          {...form.getInputProps('url')} />
         <Tabs mt="md" value={tab} onTabChange={e => setTab(e as 'password' | 'authenticator')}>
-          {createForm.values.passwordId || createForm.values.authenticatorId ? <></> : <Tabs.List>
+          {form.values.passwordId || form.values.authenticatorId ? <></> : <Tabs.List>
             <Tabs.Tab value="password">Password</Tabs.Tab>
             <Tabs.Tab value="authenticator">Authenticator</Tabs.Tab>
           </Tabs.List>}
@@ -397,12 +397,12 @@ export default function Dashboard() {
             <TextInput
               mt="md"
               label="Username"
-              {...createForm.getInputProps('username')}
+              {...form.getInputProps('username')}
             />
             <PasswordInput
               mt="md"
               label="Password"
-              {...createForm.getInputProps('password')}
+              {...form.getInputProps('password')}
             />
           </Tabs.Panel>
           <Tabs.Panel value="authenticator">
@@ -431,7 +431,7 @@ export default function Dashboard() {
                     try {
                       const parsed = parseURI(data.text)
                       if (parsed.type === 'totp') {
-                        createForm.setValues({
+                        form.setValues({
                           name: `${parsed.label.issuer}${
                             parsed.label.account ? `: ${parsed.label.account}` : ''}`,
                           secret: parsed.query.secret,
@@ -450,22 +450,22 @@ export default function Dashboard() {
               <TextInput
                 mt="md"
                 label="Name"
-                {...createForm.getInputProps('name')}
+                {...form.getInputProps('name')}
               />
               <TextInput
                 mt="md"
                 label="Secret"
-                {...createForm.getInputProps('secret')}
+                {...form.getInputProps('secret')}
               />
               <NumberInput
                 mt="md"
                 label="Digits"
-                {...createForm.getInputProps('digits')}
+                {...form.getInputProps('digits')}
               />
               <NumberInput
                 mt="md"
                 label="Period"
-                {...createForm.getInputProps('period')}
+                {...form.getInputProps('period')}
               />
               {/* <Select
                 mt="md"
@@ -474,7 +474,7 @@ export default function Dashboard() {
                   'SHA-512', 'SHA3-224', 'SHA3-256',
                   'SHA3-384', 'SHA3-512']}
                 label="Algorithm"
-                {...createForm.getInputProps('algorithm')}
+                {...form.getInputProps('algorithm')}
               /> */}
             </>}
           </Tabs.Panel>
@@ -482,7 +482,7 @@ export default function Dashboard() {
 
         <Group position="right" mt="lg">
           <Button type="submit" variant="light" loading={loadingCreate}>
-            {createForm.values.passwordId || createForm.values.authenticatorId ? 'Update' : 'Create'}
+            {form.values.passwordId || form.values.authenticatorId ? 'Update' : 'Create'}
           </Button>
         </Group>
       </form>
@@ -533,7 +533,7 @@ export default function Dashboard() {
                     </Menu.Target>
                     <Menu.Dropdown>
                       <Menu.Item closeMenuOnClick onClick={() => {
-                        createForm.setValues({
+                        form.setValues({
                           username: password.username,
                           password: password.password,
                           passwordId: password.id,
@@ -620,7 +620,7 @@ export default function Dashboard() {
                     </Menu.Target>
                     <Menu.Dropdown>
                       <Menu.Item closeMenuOnClick onClick={() => {
-                        createForm.setValues({
+                        form.setValues({
                           name: auth.name,
                           secret: auth.secret,
                           digits: auth.digits,
@@ -690,8 +690,8 @@ export default function Dashboard() {
         </Tabs>
         <Group position="right">
           <Button variant="light" onClick={() => {
-            createForm.reset()
-            createForm.setValues({
+            form.reset()
+            form.setValues({
               url: openService?.id,
               authenticatorId: undefined,
               passwordId: undefined
