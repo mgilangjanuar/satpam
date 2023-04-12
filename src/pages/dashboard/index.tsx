@@ -513,10 +513,10 @@ export default function Dashboard() {
                           </Menu.Item>
                         </Popover.Target>
                         <Popover.Dropdown>
-                          <Text color="dimmed">
+                          <Text component="p" mt="xs" mb="md">
                             Are you sure you want to remove this account?
                           </Text>
-                          <Group mt="sm" position="right">
+                          <Group position="right">
                             <Button size="sm" color="red" onClick={() => removePass(password.id)}>
                               Yes, I&apos;m confirm
                             </Button>
@@ -590,10 +590,10 @@ export default function Dashboard() {
                           </Menu.Item>
                         </Popover.Target>
                         <Popover.Dropdown>
-                          <Text color="dimmed">
+                          <Text component="p" mt="xs" mb="md">
                             Are you sure you want to remove this authenticator?
                           </Text>
-                          <Group mt="sm" position="right">
+                          <Group position="right">
                             <Button size="sm" color="red" onClick={() => removeAuth(auth.id)}>
                               Yes, I&apos;m confirm
                             </Button>
@@ -646,10 +646,10 @@ export default function Dashboard() {
               </Button>
             </Popover.Target>
             <Popover.Dropdown>
-              <Text color="dimmed">
+              <Text component="p" mt="xs" mb="md">
                 Are you sure you want to remove all passwords and authenticators?
               </Text>
-              <Group mt="sm" position="right">
+              <Group position="right">
                 <Button size="sm" color="red" onClick={removeService}>
                   Yes, I&apos;m confirm
                 </Button>
