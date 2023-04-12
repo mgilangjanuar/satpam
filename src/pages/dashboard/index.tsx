@@ -372,7 +372,7 @@ export default function Dashboard() {
       position="right"
       opened={opened}
       onClose={() => setOpened(false)}
-      title="Create a new credential">
+      title={createForm.values.passwordId || createForm.values.authenticatorId ? 'Update a credential' : 'Create a credential'}>
       <form onSubmit={createForm.onSubmit(create)}>
         <Select
           data={urlData}
@@ -482,7 +482,7 @@ export default function Dashboard() {
 
         <Group position="right" mt="lg">
           <Button type="submit" variant="light" loading={loadingCreate}>
-            Save
+            {createForm.values.passwordId || createForm.values.authenticatorId ? 'Update' : 'Create'}
           </Button>
         </Group>
       </form>
@@ -690,8 +690,11 @@ export default function Dashboard() {
         </Tabs>
         <Group position="right">
           <Button variant="light" onClick={() => {
+            createForm.reset()
             createForm.setValues({
-              url: openService?.id
+              url: openService?.id,
+              authenticatorId: undefined,
+              passwordId: undefined
             })
             setOpenService(undefined)
             setTab(tabDetails)
