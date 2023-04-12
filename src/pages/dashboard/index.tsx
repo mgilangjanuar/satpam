@@ -14,8 +14,10 @@ import totp from 'totp-generator'
 
 interface CreateForm {
   url: string,
+  passwordId?: string,
   username?: string,
   password?: string,
+  authenticatorId?: string,
   name?: string,
   secret?: string,
   digits?: number,
@@ -55,11 +57,13 @@ export default function Dashboard() {
     orderBy: 'url:asc',
     search: {}
   })
-  const createForm = useForm({
+  const createForm = useForm<CreateForm>({
     initialValues: {
       url: '',
+      passwordId: '',
       username: '',
       password: '',
+      authenticatorId: '',
       name: '',
       secret: '',
       digits: 6,
@@ -113,28 +117,52 @@ export default function Dashboard() {
       }
 
       if (data.username || data.password) {
-        await f.post(`/api/services/${serviceId}/passwords`, {
-          username: data.username,
-          password: data.password
-        }, {
-          'x-device-id': localStorage.getItem(`deviceId:${user?.id}`) || ''
-        })
+        if (data.passwordId) {
+          await f.patch(`/api/services/${serviceId}/passwords/${data.passwordId}`, {
+            username: data.username,
+            password: data.password
+          }, {
+            'x-device-id': localStorage.getItem(`deviceId:${user?.id}`) || ''
+          })
+        } else {
+          await f.post(`/api/services/${serviceId}/passwords`, {
+            username: data.username,
+            password: data.password
+          }, {
+            'x-device-id': localStorage.getItem(`deviceId:${user?.id}`) || ''
+          })
+        }
       }
       if (data.secret) {
-        await f.post(`/api/services/${serviceId}/authenticators`, {
-          name: data.name || new URL(data.url).host,
-          secret: data.secret,
-          digits: data.digits,
-          period: data.period,
-          algorithm: data.algorithm
-        }, {
-          'x-device-id': localStorage.getItem(`deviceId:${user?.id}`) || ''
-        })
+        if (data.authenticatorId) {
+          await f.patch(`/api/services/${serviceId}/authenticators/${data.authenticatorId}`, {
+            name: data.name || new URL(data.url).host,
+            secret: data.secret,
+            digits: data.digits,
+            period: data.period,
+            algorithm: data.algorithm
+          }, {
+            'x-device-id': localStorage.getItem(`deviceId:${user?.id}`) || ''
+          })
+        } else {
+          await f.post(`/api/services/${serviceId}/authenticators`, {
+            name: data.name || new URL(data.url).host,
+            secret: data.secret,
+            digits: data.digits,
+            period: data.period,
+            algorithm: data.algorithm
+          }, {
+            'x-device-id': localStorage.getItem(`deviceId:${user?.id}`) || ''
+          })
+        }
       }
 
       fetchAll()
       setOpened(false)
       createForm.reset()
+      if (!serviceId.startsWith('new_')) {
+        setOpenService(services.find(s => s.id === serviceId))
+      }
     } catch (error: any) {
       showNotification({
         title: 'Error',
@@ -245,7 +273,11 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (openService && user?.id) {
-      f.get(`/api/services/${openService.id}/passwords`, {
+      f.get(`/api/services/${openService.id}/passwords?${
+        new URLSearchParams({
+          _skip: '0',
+          _take: '0'
+        })}`, {
         'x-device-id': localStorage.getItem(`deviceId:${user?.id}`) || ''
       }).then(({ passwords }) => {
         setPasswords(passwords.map((p: Password) => {
@@ -258,14 +290,19 @@ export default function Dashboard() {
           }
         }))
       })
-      f.get(`/api/services/${openService.id}/authenticators`, {
+      f.get(`/api/services/${openService.id}/authenticators?${
+        new URLSearchParams({
+          _skip: '0',
+          _take: '0'
+        })}`, {
         'x-device-id': localStorage.getItem(`deviceId:${user?.id}`) || ''
       }).then(({ authenticators }) => {
         setAuths(authenticators.map((a: Authenticator) => {
           const rsa = new NodeRSA()
           rsa.importKey(localStorage.getItem(`privateKey:${user?.id}`) || '')
           return { ...a,
-            name: rsa.decrypt(a.name, 'utf8')
+            name: rsa.decrypt(a.name, 'utf8'),
+            secret: rsa.decrypt(a.secret, 'utf8')
           }
         }))
       })
@@ -276,13 +313,11 @@ export default function Dashboard() {
     if (auths?.length && openService) {
       setTimeout(() => {
         setTokens(auths.map(a => {
-          const rsa = new NodeRSA()
-          rsa.importKey(localStorage.getItem(`privateKey:${user?.id}`) || '')
           const time = Date.now()
           return {
             id: a.id,
             remaining: a.period - Math.floor((time / 1000) % a.period),
-            token: totp(rsa.decrypt(a.secret, 'utf8'), {
+            token: totp(a.secret, {
               digits: a.digits,
               period: a.period,
               timestamp: time,
@@ -301,7 +336,10 @@ export default function Dashboard() {
           <Title order={2}>
             Your Credentials
           </Title>
-          <Button size="sm" color="blue" variant="light" onClick={() => setOpened(true)}>
+          <Button size="sm" color="blue" variant="light" onClick={() => {
+            createForm.reset()
+            setOpened(true)
+          }}>
             Create
           </Button>
         </Group>
@@ -351,10 +389,10 @@ export default function Dashboard() {
           }}
           {...createForm.getInputProps('url')} />
         <Tabs mt="md" value={tab} onTabChange={e => setTab(e as 'password' | 'authenticator')}>
-          <Tabs.List>
+          {createForm.values.passwordId || createForm.values.authenticatorId ? <></> : <Tabs.List>
             <Tabs.Tab value="password">Password</Tabs.Tab>
             <Tabs.Tab value="authenticator">Authenticator</Tabs.Tab>
-          </Tabs.List>
+          </Tabs.List>}
           <Tabs.Panel value="password">
             <TextInput
               mt="md"
@@ -364,7 +402,6 @@ export default function Dashboard() {
             <PasswordInput
               mt="md"
               label="Password"
-              type="password"
               {...createForm.getInputProps('password')}
             />
           </Tabs.Panel>
@@ -495,7 +532,17 @@ export default function Dashboard() {
                       </ActionIcon>
                     </Menu.Target>
                     <Menu.Dropdown>
-                      <Menu.Item closeMenuOnClick>
+                      <Menu.Item closeMenuOnClick onClick={() => {
+                        createForm.setValues({
+                          username: password.username,
+                          password: password.password,
+                          passwordId: password.id,
+                          url: openService?.id
+                        })
+                        setTab('password')
+                        setOpenService(undefined)
+                        setOpened(true)
+                      }}>
                         <Group>
                           <IconEdit size={16} />
                           <Text>
@@ -572,7 +619,20 @@ export default function Dashboard() {
                       </ActionIcon>
                     </Menu.Target>
                     <Menu.Dropdown>
-                      <Menu.Item closeMenuOnClick>
+                      <Menu.Item closeMenuOnClick onClick={() => {
+                        createForm.setValues({
+                          name: auth.name,
+                          secret: auth.secret,
+                          digits: auth.digits,
+                          period: auth.period,
+                          algorithm: auth.algorithm,
+                          authenticatorId: auth.id,
+                          url: openService?.id
+                        })
+                        setTab('authenticator')
+                        setOpenService(undefined)
+                        setOpened(true)
+                      }}>
                         <Group>
                           <IconEdit size={16} />
                           <Text>
