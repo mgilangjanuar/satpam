@@ -1,7 +1,7 @@
 import ScanQr from '@/components/dashboard/scanQr'
 import { UserContext } from '@/contexts/user'
 import { f } from '@/lib/fetch'
-import { ActionIcon, Box, Button, Col, Container, CopyButton, Drawer, Grid, Group, Menu, NumberInput, Paper, PasswordInput, Popover, Select, Stack, Switch, Tabs, Text, TextInput, Title, Tooltip, UnstyledButton } from '@mantine/core'
+import { ActionIcon, Box, Button, Col, Container, CopyButton, Drawer, Grid, Group, Menu, NumberInput, Paper, PasswordInput, Popover, Progress, Select, Stack, Switch, Tabs, Text, TextInput, Title, Tooltip, UnstyledButton } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { showNotification } from '@mantine/notifications'
 import { Authenticator, Password, Service } from '@prisma/client'
@@ -10,7 +10,6 @@ import dayjs from 'dayjs'
 import NodeRSA from 'node-rsa'
 import parseURI from 'otpauth-uri-parser'
 import { useCallback, useContext, useEffect, useState } from 'react'
-import QrReader from 'react-qr-scanner'
 import totp from 'totp-generator'
 
 interface Form {
@@ -43,8 +42,6 @@ export default function Dashboard() {
   const [urlData, setUrlData] = useState<{ label: string, value: string }[]>([])
   const [tab, setTab] = useState<'password' | 'authenticator'>('password')
   const [tabDetails, setTabDetails] = useState<'password' | 'authenticator'>('password')
-  const [camDevices, setCamDevices] = useState<MediaDeviceInfo[]>()
-  const [camDeviceId, setCamDeviceId] = useState<string | null>(null)
   const [openService, setOpenService] = useState<Service>()
   const [passwords, setPasswords] = useState<Password[]>([])
   const [auths, setAuths] = useState<(Authenticator)[]>([])
@@ -581,7 +578,7 @@ export default function Dashboard() {
                     </Menu.Dropdown>
                   </Menu>
                 </Group>
-                <Group>
+                <Group spacing="xs">
                   <Text>{password.username}</Text>
                   <CopyButton value={password.username} timeout={2000}>
                     {({ copied, copy }) => (
@@ -598,8 +595,8 @@ export default function Dashboard() {
                 <Text component="strong" size="sm">
                   Password
                 </Text>
-                <Group>
-                  <PasswordInput mt="xs" readOnly value={password.password} style={{ flexGrow: 1 }} />
+                <Group spacing="xs" mt="xs">
+                  <PasswordInput readOnly value={password.password} style={{ flexGrow: 1 }} />
                   <CopyButton value={password.password} timeout={2000}>
                     {({ copied, copy }) => (
                       <Tooltip label={copied ? 'Copied' : 'Copy'} withArrow position="right">
@@ -674,24 +671,36 @@ export default function Dashboard() {
                 <Text>{auth.name}</Text>
               </Box>
               <Box mt="md">
-                <Text component="strong" size="sm">
-                  Token
-                </Text>
-                <Group>
-                  <Text>{tokens?.find(t => t.id === auth.id)?.token}</Text>
-                  <CopyButton value={tokens?.find(t => t.id === auth.id)?.token || ''} timeout={2000}>
-                    {({ copied, copy }) => (
-                      <Tooltip label={copied ? 'Copied' : 'Copy'} withArrow position="right">
-                        <ActionIcon color={copied ? 'teal' : 'gray'} onClick={copy}>
-                          {copied ? <IconCheck size="1rem" /> : <IconCopy size="1rem" />}
-                        </ActionIcon>
-                      </Tooltip>
-                    )}
-                  </CopyButton>
-                </Group>
-                <Text color="dimmed" size="sm">
-                  expires in {tokens?.find(t => t.id === auth.id)?.remaining}s
-                </Text>
+                <Grid>
+                  <Col span={5}>
+                    <Text component="strong" size="sm">
+                      Token
+                    </Text>
+                    <Group spacing="xs">
+                      <Text>{tokens?.find(t => t.id === auth.id)?.token}</Text>
+                      <CopyButton value={tokens?.find(t => t.id === auth.id)?.token || ''} timeout={2000}>
+                        {({ copied, copy }) => (
+                          <Tooltip label={copied ? 'Copied' : 'Copy'} withArrow position="right">
+                            <ActionIcon color={copied ? 'teal' : 'gray'} onClick={copy}>
+                              {copied ? <IconCheck size="1rem" /> : <IconCopy size="1rem" />}
+                            </ActionIcon>
+                          </Tooltip>
+                        )}
+                      </CopyButton>
+                    </Group>
+                  </Col>
+                  <Col span={7}>
+                    <Text component="strong" size="sm">
+                      Expires in
+                    </Text>
+                    <Group>
+                      <Text>{tokens?.find(t => t.id === auth.id)?.remaining} sec</Text>
+                      <Progress
+                        size="sm"
+                        value={(tokens?.find(t => t.id === auth.id)?.remaining || 0) / auth.period * 100} style={{ flexGrow: 1 }} />
+                    </Group>
+                  </Col>
+                </Grid>
               </Box>
             </Paper>)}
           </Tabs.Panel>
