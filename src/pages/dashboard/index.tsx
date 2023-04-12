@@ -35,6 +35,7 @@ export default function Dashboard() {
   const [toggleQR, setToggleQR] = useState<boolean>(true)
   const [urlData, setUrlData] = useState<{ label: string, value: string }[]>([])
   const [tab, setTab] = useState<'password' | 'authenticator'>('password')
+  const [tabDetails, setTabDetails] = useState<'password' | 'authenticator'>('password')
   const [camDevices, setCamDevices] = useState<MediaDeviceInfo[]>()
   const [camDeviceId, setCamDeviceId] = useState<string | null>(null)
   const [openService, setOpenService] = useState<Service>()
@@ -233,17 +234,17 @@ export default function Dashboard() {
   }, [fetchAll])
 
   useEffect(() => {
-    if (toggleQR && tab === 'authenticator') {
+    if (toggleQR && tab === 'authenticator' && opened) {
       window.navigator.mediaDevices.enumerateDevices().then(devices => {
         const cams = devices.filter(device => device.kind === 'videoinput' && device.deviceId)
         setCamDevices(cams)
         setCamDeviceId(cams[0]?.deviceId)
       })
     }
-  }, [toggleQR, tab])
+  }, [toggleQR, tab, opened])
 
   useEffect(() => {
-    if (openService) {
+    if (openService && user?.id) {
       f.get(`/api/services/${openService.id}/passwords`, {
         'x-device-id': localStorage.getItem(`deviceId:${user?.id}`) || ''
       }).then(({ passwords }) => {
@@ -272,7 +273,7 @@ export default function Dashboard() {
   }, [openService, user?.id])
 
   useEffect(() => {
-    if (auths?.length) {
+    if (auths?.length && openService) {
       setTimeout(() => {
         setTokens(auths.map(a => {
           const rsa = new NodeRSA()
@@ -291,7 +292,7 @@ export default function Dashboard() {
         }))
       }, 1000)
     }
-  }, [tokens, auths, user?.id])
+  }, [tokens, openService, auths, user?.id])
 
   return <Container fluid>
     <Grid>
@@ -379,7 +380,7 @@ export default function Dashboard() {
                 data={camDevices.map(c => ({ value: c.deviceId, label: c.label }))}
                 value={camDeviceId}
                 onChange={setCamDeviceId} /> : <></>}
-              {tab === 'authenticator' ? <QrReader
+              <QrReader
                 constraints={{ video: camDeviceId ? { deviceId: camDeviceId } : { facingMode: { ideal: 'environment' } } }}
                 style={{ width: '100%'}}
                 onError={e => showNotification({
@@ -389,6 +390,7 @@ export default function Dashboard() {
                 })}
                 onScan={async data => {
                   if (data?.text) {
+                    console.log(data.text)
                     try {
                       const parsed = parseURI(data.text)
                       if (parsed.type === 'totp') {
@@ -406,7 +408,7 @@ export default function Dashboard() {
                       // ignore
                     }
                   }
-                }} /> : <></>}
+                }} />
             </> : <>
               <TextInput
                 mt="md"
@@ -474,7 +476,7 @@ export default function Dashboard() {
           </Group>
         </form>
 
-        <Tabs value={tab} onTabChange={t => setTab(t as 'password' | 'authenticator')} style={{ flexGrow: 1 }}>
+        <Tabs value={tabDetails} onTabChange={t => setTabDetails(t as 'password' | 'authenticator')} style={{ flexGrow: 1 }}>
           <Tabs.List>
             <Tabs.Tab value="password">Password</Tabs.Tab>
             <Tabs.Tab value="authenticator">Authenticator</Tabs.Tab>
@@ -627,8 +629,15 @@ export default function Dashboard() {
           </Tabs.Panel>
         </Tabs>
         <Group position="right">
-          <Button variant="light">
-            Add {tab === 'password' ? 'a password' : 'an authenticator'}
+          <Button variant="light" onClick={() => {
+            createForm.setValues({
+              url: openService?.id
+            })
+            setOpenService(undefined)
+            setTab(tabDetails)
+            setOpened(true)
+          }}>
+            Add {tabDetails === 'password' ? 'a password' : 'an authenticator'}
           </Button>
           <Popover width={280} withArrow position="top-end">
             <Popover.Target>
