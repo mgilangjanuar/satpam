@@ -1,6 +1,7 @@
+import ScanQr from '@/components/dashboard/scanQr'
 import { UserContext } from '@/contexts/user'
 import { f } from '@/lib/fetch'
-import { ActionIcon, Badge, Box, Button, Col, Container, Drawer, Grid, Group, Image, List, MediaQuery, Menu, Paper, Popover, Select, Text, TextInput, Title } from '@mantine/core'
+import { ActionIcon, Badge, Box, Button, Col, Container, Drawer, Grid, Group, Image, List, MediaQuery, Menu, Paper, Popover, Text, TextInput, Title } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { showNotification } from '@mantine/notifications'
 import { Device } from '@prisma/client'
@@ -9,7 +10,6 @@ import dayjs from 'dayjs'
 import NodeRSA from 'node-rsa'
 import QrCode from 'qrcode'
 import { useCallback, useContext, useEffect, useState } from 'react'
-import QrReader from 'react-qr-scanner'
 import { UAParser } from 'ua-parser-js'
 
 export default function Dashboard() {
@@ -19,8 +19,6 @@ export default function Dashboard() {
   const [modalOpened, setModalOpened] = useState<'qrreader' | 'qrcode'>()
   const [thisDevice, setThisDevice] = useState<string | null>(null)
   const [privKey, setPrivKey] = useState<string | null>(null)
-  const [camDevices, setCamDevices] = useState<MediaDeviceInfo[]>()
-  const [camDeviceId, setCamDeviceId] = useState<string | null>(null)
   const [qr, setQr] = useState<string | null>(null)
   const [scanComplete, setScanComplete] = useState(false)
   const form = useForm<Device>()
@@ -29,6 +27,8 @@ export default function Dashboard() {
     const { devices } = await f.get('/api/devices')
     setDevices(devices)
   }, [])
+
+  const onGetDevices = useCallback(() => modalOpened === 'qrreader', [modalOpened])
 
   useEffect(() => {
     fetchDevices()
@@ -44,25 +44,6 @@ export default function Dashboard() {
         .catch(() => setQr(null))
     }
   }, [user])
-
-  useEffect(() => {
-    if (modalOpened === 'qrreader') {
-      window.navigator.mediaDevices.enumerateDevices().then(devices => {
-        const cams = devices.filter(device => device.kind === 'videoinput' && device.deviceId)
-        setCamDevices(cams)
-        setCamDeviceId(cams[0]?.deviceId)
-      })
-    }
-  }, [modalOpened])
-
-  useEffect(() => {
-    if (camDevices?.length === 0) {
-      setModalOpened(undefined)
-      setTimeout(() => {
-        setModalOpened('qrreader')
-      }, 500)
-    }
-  }, [camDevices])
 
   const update = async (values: Device) => {
     try {
@@ -296,37 +277,26 @@ export default function Dashboard() {
             </Group>
           </form>
         </Box> : <Box ta="center" my="sm">
-          {camDevices?.length ? <Select
-            mb="md"
-            data={camDevices.map(c => ({ value: c.deviceId, label: c.label }))}
-            value={camDeviceId}
-            onChange={setCamDeviceId} /> : <></>}
-          <QrReader
-            constraints={{ video: camDeviceId ? { deviceId: camDeviceId } : { facingMode: { ideal: 'environment' } } }}
-            style={{ width: '100%'}}
-            onError={e => showNotification({
-              title: 'Error',
-              message: e.message,
-              color: 'red'
-            })}
-            onScan={async data => {
-              if (data?.text) {
-                try {
-                  const key = new NodeRSA()
-                  key.importKey(data.text)
+          <ScanQr
+            onScan={val => {
+              const key = new NodeRSA()
+              key.importKey(val)
 
-                  if (key.isPrivate()) {
-                    localStorage.setItem(`privateKey:${user?.id}`, data.text)
-                    const ua = new UAParser().getResult()
-                    form.setValues({
-                      name: `${ua.browser.name} (${ua.os.name} ${ua.device.vendor})`
-                    })
-                    setScanComplete(true)
-                  }
-                } catch (error) {
-                  // ignore
-                }
+              if (key.isPrivate()) {
+                localStorage.setItem(`privateKey:${user?.id}`, val)
+                const ua = new UAParser().getResult()
+                form.setValues({
+                  name: `${ua.browser.name} (${ua.os.name} ${ua.device.vendor})`
+                })
+                setScanComplete(true)
               }
+            }}
+            onGetDevices={onGetDevices}
+            onNoDevices={() => {
+              setModalOpened(undefined)
+              setTimeout(() => {
+                setModalOpened('qrreader')
+              }, 500)
             }} />
         </Box>}
         <Box p="sm">

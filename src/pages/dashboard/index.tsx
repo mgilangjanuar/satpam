@@ -1,3 +1,4 @@
+import ScanQr from '@/components/dashboard/scanQr'
 import { UserContext } from '@/contexts/user'
 import { f } from '@/lib/fetch'
 import { ActionIcon, Box, Button, Col, Container, CopyButton, Drawer, Grid, Group, Menu, NumberInput, Paper, PasswordInput, Popover, Select, Stack, Switch, Tabs, Text, TextInput, Title, Tooltip, UnstyledButton } from '@mantine/core'
@@ -270,19 +271,13 @@ export default function Dashboard() {
     }
   }
 
+  const onGetDevices = useCallback(() => {
+    return toggleQR && tab === 'authenticator' && opened
+  }, [toggleQR, tab, opened])
+
   useEffect(() => {
     fetchAll()
   }, [fetchAll])
-
-  useEffect(() => {
-    if (toggleQR && tab === 'authenticator' && opened) {
-      window.navigator.mediaDevices.enumerateDevices().then(devices => {
-        const cams = devices.filter(device => device.kind === 'videoinput' && device.deviceId)
-        setCamDevices(cams)
-        setCamDeviceId(cams[0]?.deviceId)
-      })
-    }
-  }, [toggleQR, tab, opened])
 
   useEffect(() => {
     if (openService && user?.id) {
@@ -440,46 +435,26 @@ export default function Dashboard() {
           </Tabs.Panel>
           <Tabs.Panel value="authenticator">
             <Switch
-              mt="md"
+              my="md"
               checked={toggleQR}
               onChange={({ target: { checked } }) => setToggleQR(checked)}
               label={toggleQR ? 'Switch to input secret' : 'Switch to QR scanner'} />
-            {toggleQR && tab === 'authenticator' ? <>
-              {camDevices?.length ? <Select
-                my="md"
-                data={camDevices.map(c => ({ value: c.deviceId, label: c.label }))}
-                value={camDeviceId}
-                onChange={setCamDeviceId} /> : <></>}
-              <QrReader
-                constraints={{ video: camDeviceId ? { deviceId: camDeviceId } : { facingMode: { ideal: 'environment' } } }}
-                style={{ width: '100%'}}
-                onError={e => showNotification({
-                  title: 'Error',
-                  message: e.message,
-                  color: 'red'
-                })}
-                onScan={async data => {
-                  if (data?.text) {
-                    console.log(data.text)
-                    try {
-                      const parsed = parseURI(data.text)
-                      if (parsed.type === 'totp') {
-                        form.setValues({
-                          name: `${parsed.label.issuer}${
-                            parsed.label.account ? `: ${parsed.label.account}` : ''}`,
-                          secret: parsed.query.secret,
-                          digits: Number(parsed.query.digits) || 6,
-                          period: Number(parsed.query.period) || 30,
-                          algorithm: parsed.query.algorithm || 'SHA-1'
-                        })
-                        setToggleQR(false)
-                      }
-                    } catch (error) {
-                      // ignore
-                    }
-                  }
-                }} />
-            </> : <>
+            {toggleQR && tab === 'authenticator' ? <ScanQr
+              onScan={val => {
+                const parsed = parseURI(val)
+                if (parsed.type === 'totp') {
+                  form.setValues({
+                    name: `${parsed.label.issuer}${
+                      parsed.label.account ? `: ${parsed.label.account}` : ''}`,
+                    secret: parsed.query.secret,
+                    digits: Number(parsed.query.digits) || 6,
+                    period: Number(parsed.query.period) || 30,
+                    algorithm: parsed.query.algorithm || 'SHA-1'
+                  })
+                  setToggleQR(false)
+                }
+              }}
+              onGetDevices={onGetDevices} /> : <>
               <TextInput
                 mt="md"
                 label="Name"
