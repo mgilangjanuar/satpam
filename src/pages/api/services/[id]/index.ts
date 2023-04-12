@@ -30,6 +30,11 @@ export default authorization(wrapper(async (
   }
 
   if (req.method === 'PATCH') {
+    const { url } = req.body
+    if (!url) {
+      return res.status(400).json({ error: 'Missing url' })
+    }
+
     const { id } = req.query
     const service = await prisma.service.findFirst({
       select: {
@@ -50,7 +55,8 @@ export default authorization(wrapper(async (
         id: service.id
       },
       data: {
-        ...req.body
+        url,
+        host: new URL(url).host
       }
     })
 

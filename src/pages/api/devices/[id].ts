@@ -3,6 +3,7 @@ import { wrapper } from '@/_middlewares/wrapper'
 import { prisma } from '@/lib/prisma'
 import { Device } from '@prisma/client'
 import type { NextApiResponse } from 'next'
+import UAParser from 'ua-parser-js'
 
 type Data = {
   device?: Partial<Device>,
@@ -36,6 +37,8 @@ export default authorization(wrapper(async (
   }
 
   if (req.method === 'PATCH') {
+    const { name } = req.body
+
     const { id } = req.query
     const device = await prisma.device.findFirst({
       select: {
@@ -51,11 +54,14 @@ export default authorization(wrapper(async (
       return res.status(404).json({ error: 'Device not found' })
     }
 
+    const ua = new UAParser(req.headers['user-agent']).getResult()
     await prisma.device.update({
       where: {
         id: device.id
       },
-      data: req.body
+      data: {
+        name: name || `${ua.browser.name} (${ua.os.name} ${ua.device.vendor})`
+      }
     })
 
     return res.status(200).json({})

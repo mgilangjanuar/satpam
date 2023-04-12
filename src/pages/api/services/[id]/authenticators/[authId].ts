@@ -59,6 +59,7 @@ export default authorization(devicevalidation(wrapper(async (
       return res.status(404).json({ error: 'Authenticator not found' })
     }
 
+    let rsa: NodeRSA | undefined = undefined
     let encryptString: ((str: string, password: string) => string) | undefined = undefined
     if (req.body.name || req.body.secret) {
       const user = await prisma.user.findUnique({
@@ -73,7 +74,7 @@ export default authorization(devicevalidation(wrapper(async (
         return res.status(400).json({ error: 'User not found' })
       }
 
-      const rsa = new NodeRSA()
+      rsa = new NodeRSA()
       rsa.importKey(user.publicKey)
 
       encryptString = new StringCrypto({
@@ -88,11 +89,13 @@ export default authorization(devicevalidation(wrapper(async (
       },
       data: {
         ...req.body,
-        ...req.body.name && encryptString ? {
-          name: encryptString(req.body.name, process.env.ENCRYPT_KEY as string)
+        ...req.body.name && encryptString && rsa ? {
+          name: encryptString(
+            rsa.encrypt(req.body.name, 'base64'), process.env.ENCRYPT_KEY as string)
         } : {},
-        ...req.body.secret && encryptString ? {
-          secret: encryptString(req.body.secret, process.env.ENCRYPT_KEY as string)
+        ...req.body.secret && encryptString && rsa ? {
+          secret: encryptString(
+            rsa.encrypt(req.body.secret, 'base64'), process.env.ENCRYPT_KEY as string)
         } : {},
       }
     })

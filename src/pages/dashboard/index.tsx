@@ -1,13 +1,16 @@
 import { UserContext } from '@/contexts/user'
 import { f } from '@/lib/fetch'
-import { Button, Col, Container, Drawer, Grid, Group, Modal, NumberInput, PasswordInput, Select, Switch, Tabs, TextInput, Title } from '@mantine/core'
+import { ActionIcon, Box, Button, Col, Container, CopyButton, Drawer, Grid, Group, NumberInput, Paper, PasswordInput, Select, Switch, Tabs, Text, TextInput, Title, Tooltip, UnstyledButton } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { showNotification } from '@mantine/notifications'
-import { Service } from '@prisma/client'
-import totp from 'totp-generator'
+import { Authenticator, Password, Service } from '@prisma/client'
+import { IconCheck, IconCopy } from '@tabler/icons-react'
+import dayjs from 'dayjs'
+import NodeRSA from 'node-rsa'
 import parseURI from 'otpauth-uri-parser'
 import { useCallback, useContext, useEffect, useState } from 'react'
 import QrReader from 'react-qr-scanner'
+import totp from 'totp-generator'
 
 interface CreateForm {
   url: string,
@@ -21,6 +24,10 @@ interface CreateForm {
   uri?: string
 }
 
+interface UpdateServiceForm {
+  url: string
+}
+
 export default function Dashboard() {
   const { user } = useContext(UserContext)
   const [services, setServices] = useState<Service[]>([])
@@ -31,8 +38,11 @@ export default function Dashboard() {
   const [camDevices, setCamDevices] = useState<MediaDeviceInfo[]>()
   const [camDeviceId, setCamDeviceId] = useState<string | null>(null)
   const [openService, setOpenService] = useState<Service>()
-  const [totp, setTotp] = useState<string>()
-  const [remaining, setRemaining] = useState<number>(0)
+  const [passwords, setPasswords] = useState<Password[]>([])
+  const [auths, setAuths] = useState<(Authenticator)[]>([])
+  const [tokens, setTokens] = useState<{ id: string, token: string, remaining: number }[]>([])
+  const [loadingCreate, setLoadingCreate] = useState<boolean>(false)
+  const [loadingUpdateService, setLoadingUpdateService] = useState<boolean>(false)
   const [filters, setFilters] = useState<{
     skip: number,
     take: number,
@@ -54,6 +64,11 @@ export default function Dashboard() {
       digits: 6,
       period: 30,
       algorithm: 'SHA-1'
+    }
+  })
+  const updateServiceForm = useForm({
+    initialValues: {
+      url: ''
     }
   })
 
@@ -83,6 +98,7 @@ export default function Dashboard() {
   }, [user, filters])
 
   const create = async (data: CreateForm) => {
+    setLoadingCreate(true)
     try {
       let serviceId: string = data.url
 
@@ -124,6 +140,30 @@ export default function Dashboard() {
         message: error.message,
         color: 'red',
       })
+    } finally {
+      setLoadingCreate(false)
+    }
+  }
+
+  const updateService = async (data: UpdateServiceForm) => {
+    setLoadingUpdateService(true)
+    try {
+      await f.patch(`/api/services/${openService?.id}`, {
+        url: data.url
+      }, {
+        'x-device-id': localStorage.getItem(`deviceId:${user?.id}`) || ''
+      })
+
+      fetchAll()
+      setOpenService(s => ({ ...s, url: data.url } as Service))
+    } catch (error: any) {
+      showNotification({
+        title: 'Error',
+        message: error.message,
+        color: 'red',
+      })
+    } finally {
+      setLoadingUpdateService(false)
     }
   }
 
@@ -143,14 +183,59 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (openService) {
-
+      f.get(`/api/services/${openService.id}/passwords`, {
+        'x-device-id': localStorage.getItem(`deviceId:${user?.id}`) || ''
+      }).then(({ passwords }) => {
+        setPasswords(passwords.map((p: Password) => {
+          const rsa = new NodeRSA()
+          rsa.importKey(localStorage.getItem(`privateKey:${user?.id}`) || '')
+          return {
+            ...p,
+            username: rsa.decrypt(p.username, 'utf8'),
+            password: rsa.decrypt(p.password, 'utf8')
+          }
+        }))
+      })
+      f.get(`/api/services/${openService.id}/authenticators`, {
+        'x-device-id': localStorage.getItem(`deviceId:${user?.id}`) || ''
+      }).then(({ authenticators }) => {
+        setAuths(authenticators.map((a: Authenticator) => {
+          const rsa = new NodeRSA()
+          rsa.importKey(localStorage.getItem(`privateKey:${user?.id}`) || '')
+          return { ...a,
+            name: rsa.decrypt(a.name, 'utf8')
+          }
+        }))
+      })
     }
-  }, [openService])
+  }, [openService, user?.id])
+
+  useEffect(() => {
+    if (auths?.length) {
+      setTimeout(() => {
+        setTokens(auths.map(a => {
+          const rsa = new NodeRSA()
+          rsa.importKey(localStorage.getItem(`privateKey:${user?.id}`) || '')
+          const time = Date.now()
+          return {
+            id: a.id,
+            remaining: a.period - Math.floor((time / 1000) % a.period),
+            token: totp(rsa.decrypt(a.secret, 'utf8'), {
+              digits: a.digits,
+              period: a.period,
+              timestamp: time,
+              algorithm: a.algorithm as any
+            })
+          }
+        }))
+      }, 1000)
+    }
+  }, [tokens, auths, user?.id])
 
   return <Container fluid>
     <Grid>
       <Col span={12} lg={6} md={8} sm={10}>
-        <Group position="apart" mb="lg">
+        <Group position="apart" mb={4}>
           <Title order={2}>
             Your Credentials
           </Title>
@@ -158,6 +243,28 @@ export default function Dashboard() {
             Create
           </Button>
         </Group>
+
+        {services.map(service => <UnstyledButton
+          w="100%"
+          mt="md"
+          key={service.id}
+          onClick={() => {
+            updateServiceForm.setValues({
+              url: service.url
+            })
+            setOpenService(service)
+          }}>
+            <Paper
+              p="md"
+              withBorder>
+              <Text truncate>
+                {service.url.split('://')[1].replace(/^\/|\/$/g, '')}
+              </Text>
+              <Text color="dimmed" mt="xs">
+                Added at {dayjs(service.createdAt).format('MMMM D, YYYY H:mm')}
+              </Text>
+            </Paper>
+          </UnstyledButton>)}
       </Col>
     </Grid>
 
@@ -274,7 +381,7 @@ export default function Dashboard() {
         </Tabs>
 
         <Group position="right" mt="lg">
-          <Button type="submit" variant="light">
+          <Button type="submit" variant="light" loading={loadingCreate}>
             Save
           </Button>
         </Group>
@@ -285,7 +392,100 @@ export default function Dashboard() {
       position="right"
       opened={Boolean(openService)}
       onClose={() => setOpenService(undefined)}
-      title={openService?.url}>
+      title={openService?.url.split('://')[1].replace(/^\/|\/$/g, '')}>
+      <form onSubmit={updateServiceForm.onSubmit(updateService)}>
+        <Group align="end">
+          <TextInput
+            style={{ flexGrow: 1 }}
+            placeholder="https://example.com"
+            type="url"
+            {...updateServiceForm.getInputProps('url')}
+          />
+          <ActionIcon
+            size="lg"
+            type="submit"
+            color="teal"
+            variant="subtle"
+            loading={loadingUpdateService}>
+            <IconCheck size={18} />
+          </ActionIcon>
+        </Group>
+      </form>
+
+      <Tabs mt="md" defaultValue="password">
+        <Tabs.List>
+          <Tabs.Tab value="password">Password</Tabs.Tab>
+          <Tabs.Tab value="authenticator">Authenticator</Tabs.Tab>
+        </Tabs.List>
+        <Tabs.Panel value="password">
+          {passwords.map(password => <Paper key={password.id} p="md" mt="md" withBorder>
+            <Box>
+              <Text component="strong" size="sm">
+                Username
+              </Text>
+              <Group>
+                <Text>{password.username}</Text>
+                <CopyButton value={password.username} timeout={2000}>
+                  {({ copied, copy }) => (
+                    <Tooltip label={copied ? 'Copied' : 'Copy'} withArrow position="right">
+                      <ActionIcon color={copied ? 'teal' : 'gray'} onClick={copy}>
+                        {copied ? <IconCheck size="1rem" /> : <IconCopy size="1rem" />}
+                      </ActionIcon>
+                    </Tooltip>
+                  )}
+                </CopyButton>
+              </Group>
+            </Box>
+            <Box mt="md">
+              <Text component="strong" size="sm">
+                Password
+              </Text>
+              <Group>
+                <PasswordInput mt="xs" readOnly value={password.password} style={{ flexGrow: 1 }} />
+                <CopyButton value={password.password} timeout={2000}>
+                  {({ copied, copy }) => (
+                    <Tooltip label={copied ? 'Copied' : 'Copy'} withArrow position="right">
+                      <ActionIcon color={copied ? 'teal' : 'gray'} onClick={copy}>
+                        {copied ? <IconCheck size="1rem" /> : <IconCopy size="1rem" />}
+                      </ActionIcon>
+                    </Tooltip>
+                  )}
+                </CopyButton>
+              </Group>
+            </Box>
+          </Paper>)}
+        </Tabs.Panel>
+        <Tabs.Panel value="authenticator">
+          {auths.map(auth => <Paper key={auth.id} p="md" mt="md" withBorder>
+            <Box>
+              <Text component="strong" size="sm">
+                Name
+              </Text>
+              <Text>{auth.name}</Text>
+            </Box>
+            <Box mt="md">
+              <Text component="strong" size="sm">
+                Token
+              </Text>
+              <Group>
+                <Text>{tokens?.find(t => t.id === auth.id)?.token}</Text>
+                <CopyButton value={tokens?.find(t => t.id === auth.id)?.token || ''} timeout={2000}>
+                  {({ copied, copy }) => (
+                    <Tooltip label={copied ? 'Copied' : 'Copy'} withArrow position="right">
+                      <ActionIcon color={copied ? 'teal' : 'gray'} onClick={copy}>
+                        {copied ? <IconCheck size="1rem" /> : <IconCopy size="1rem" />}
+                      </ActionIcon>
+                    </Tooltip>
+                  )}
+                </CopyButton>
+              </Group>
+              <Text color="dimmed" size="sm">
+                expires in {tokens?.find(t => t.id === auth.id)?.remaining}s
+              </Text>
+            </Box>
+          </Paper>)}
+        </Tabs.Panel>
+      </Tabs>
     </Drawer>
   </Container>
 }
