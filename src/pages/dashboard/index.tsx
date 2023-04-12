@@ -4,7 +4,7 @@ import { ActionIcon, Box, Button, Col, Container, CopyButton, Drawer, Grid, Grou
 import { useForm } from '@mantine/form'
 import { showNotification } from '@mantine/notifications'
 import { Authenticator, Password, Service } from '@prisma/client'
-import { IconCheck, IconCopy, IconDotsVertical, IconEdit, IconTrash } from '@tabler/icons-react'
+import { IconCheck, IconCopy, IconDotsVertical, IconEdit, IconSearch, IconTrash } from '@tabler/icons-react'
 import dayjs from 'dayjs'
 import NodeRSA from 'node-rsa'
 import parseURI from 'otpauth-uri-parser'
@@ -26,8 +26,12 @@ interface Form {
   uri?: string
 }
 
-interface UpdateServiceForm {
+interface UpdateURLForm {
   url: string
+}
+
+interface SearchForm {
+  urlContains: string
 }
 
 export default function Dashboard() {
@@ -44,8 +48,9 @@ export default function Dashboard() {
   const [passwords, setPasswords] = useState<Password[]>([])
   const [auths, setAuths] = useState<(Authenticator)[]>([])
   const [tokens, setTokens] = useState<{ id: string, token: string, remaining: number }[]>([])
-  const [loadingCreate, setLoadingCreate] = useState<boolean>(false)
-  const [loadingUpdateService, setLoadingUpdateService] = useState<boolean>(false)
+  const [loading, setLoading] = useState<boolean>(false)
+  const [loadingUpdateURL, setLoadingUpdateURL] = useState<boolean>(false)
+  const [loadingSearch, setLoadingSearch] = useState<boolean>(false)
   const [filters, setFilters] = useState<{
     skip: number,
     take: number,
@@ -71,9 +76,14 @@ export default function Dashboard() {
       algorithm: 'SHA-1'
     }
   })
-  const updateServiceForm = useForm({
+  const updateURLForm = useForm<UpdateURLForm>({
     initialValues: {
       url: ''
+    }
+  })
+  const searchForm = useForm<SearchForm>({
+    initialValues: {
+      urlContains: ''
     }
   })
 
@@ -95,15 +105,18 @@ export default function Dashboard() {
       } catch (error: any) {
         showNotification({
           title: 'Error',
+          id: 'services-error',
           message: error.message,
           color: 'red',
         })
+      } finally {
+        setLoadingSearch(false)
       }
     }
   }, [user, filters])
 
   const save = async (data: Form) => {
-    setLoadingCreate(true)
+    setLoading(true)
     try {
       let serviceId: string = data.url
 
@@ -170,12 +183,12 @@ export default function Dashboard() {
         color: 'red',
       })
     } finally {
-      setLoadingCreate(false)
+      setLoading(false)
     }
   }
 
-  const updateService = async (data: UpdateServiceForm) => {
-    setLoadingUpdateService(true)
+  const updateService = async (data: UpdateURLForm) => {
+    setLoadingUpdateURL(true)
     try {
       await f.patch(`/api/services/${openService?.id}`, {
         url: data.url
@@ -192,7 +205,7 @@ export default function Dashboard() {
         color: 'red',
       })
     } finally {
-      setLoadingUpdateService(false)
+      setLoadingUpdateURL(false)
     }
   }
 
@@ -332,7 +345,7 @@ export default function Dashboard() {
   return <Container fluid>
     <Grid>
       <Col span={12} lg={6} md={8} sm={10}>
-        <Group position="apart" mb={4}>
+        <Group position="apart" mb="lg">
           <Title order={2}>
             Your Credentials
           </Title>
@@ -344,12 +357,32 @@ export default function Dashboard() {
           </Button>
         </Group>
 
+        <form onSubmit={searchForm.onSubmit(({ urlContains }) => {
+          setLoadingSearch(true)
+          setFilters(f => ({ ...f, search: {
+            ...f.search, url: {
+              contains: urlContains,
+              mode: 'insensitive'
+            }
+          } }))
+        })}>
+          <TextInput
+            tabIndex={1}
+            autoFocus
+            mt="md"
+            placeholder="Search..."
+            rightSection={<ActionIcon loading={loadingSearch}>
+              <IconSearch size={16} />
+            </ActionIcon>}
+            {...searchForm.getInputProps('urlContains')} />
+        </form>
+
         {services.map(service => <UnstyledButton
           w="100%"
           mt="md"
           key={service.id}
           onClick={() => {
-            updateServiceForm.setValues({
+            updateURLForm.setValues({
               url: service.url
             })
             setOpenService(service)
@@ -481,7 +514,7 @@ export default function Dashboard() {
         </Tabs>
 
         <Group position="right" mt="lg">
-          <Button type="submit" variant="light" loading={loadingCreate}>
+          <Button type="submit" variant="light" loading={loading}>
             {form.values.passwordId || form.values.authenticatorId ? 'Update' : 'Create'}
           </Button>
         </Group>
@@ -494,20 +527,20 @@ export default function Dashboard() {
       onClose={() => setOpenService(undefined)}
       title={openService?.url.split('://')[1].replace(/^\/|\/$/g, '')}>
       <Stack mih="calc(100vh - 70px)">
-        <form onSubmit={updateServiceForm.onSubmit(updateService)}>
+        <form onSubmit={updateURLForm.onSubmit(updateService)}>
           <Group align="end">
             <TextInput
               style={{ flexGrow: 1 }}
               placeholder="https://example.com"
               type="url"
-              {...updateServiceForm.getInputProps('url')}
+              {...updateURLForm.getInputProps('url')}
             />
             <ActionIcon
               size="lg"
               type="submit"
               color="teal"
               variant="subtle"
-              loading={loadingUpdateService}>
+              loading={loadingUpdateURL}>
               <IconCheck size={18} />
             </ActionIcon>
           </Group>
