@@ -1,30 +1,16 @@
-import ScanQr from '@/components/dashboard/scanQr'
+import CreateCredential from '@/components/dashboard/createCredential'
 import { UserContext } from '@/contexts/user'
+import useCreateCredential from '@/hooks/useCreateCredential'
 import { f } from '@/lib/fetch'
-import { ActionIcon, Box, Button, Col, Container, CopyButton, Drawer, Grid, Group, Menu, NumberInput, Paper, PasswordInput, Popover, Progress, Select, Stack, Switch, Tabs, Text, TextInput, Title, Tooltip, UnstyledButton } from '@mantine/core'
+import { ActionIcon, Box, Button, Col, Container, CopyButton, Drawer, Grid, Group, Menu, Paper, PasswordInput, Popover, Progress, Stack, Tabs, Text, TextInput, Title, Tooltip, UnstyledButton } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { showNotification } from '@mantine/notifications'
 import { Authenticator, Password, Service } from '@prisma/client'
 import { IconCheck, IconCopy, IconDotsVertical, IconEdit, IconSearch, IconTrash } from '@tabler/icons-react'
 import dayjs from 'dayjs'
 import NodeRSA from 'node-rsa'
-import parseURI from 'otpauth-uri-parser'
 import { useCallback, useContext, useEffect, useState } from 'react'
 import totp from 'totp-generator'
-
-interface Form {
-  url: string,
-  passwordId?: string,
-  username?: string,
-  password?: string,
-  authenticatorId?: string,
-  name?: string,
-  secret?: string,
-  digits?: number,
-  period?: number,
-  algorithm?: string,
-  uri?: string
-}
 
 interface UpdateURLForm {
   url: string
@@ -38,7 +24,6 @@ export default function Dashboard() {
   const { user } = useContext(UserContext)
   const [services, setServices] = useState<Service[]>([])
   const [opened, setOpened] = useState<boolean>(false)
-  const [toggleQR, setToggleQR] = useState<boolean>(true)
   const [urlData, setUrlData] = useState<{ label: string, value: string }[]>([])
   const [tab, setTab] = useState<'password' | 'authenticator'>('password')
   const [tabDetails, setTabDetails] = useState<'password' | 'authenticator'>('password')
@@ -46,7 +31,6 @@ export default function Dashboard() {
   const [passwords, setPasswords] = useState<Password[]>([])
   const [auths, setAuths] = useState<(Authenticator)[]>([])
   const [tokens, setTokens] = useState<{ id: string, token: string, remaining: number }[]>([])
-  const [loading, setLoading] = useState<boolean>(false)
   const [loadingUpdateURL, setLoadingUpdateURL] = useState<boolean>(false)
   const [loadingSearch, setLoadingSearch] = useState<boolean>(false)
   const [filters, setFilters] = useState<{
@@ -60,20 +44,8 @@ export default function Dashboard() {
     orderBy: 'url:asc',
     search: {}
   })
-  const form = useForm<Form>({
-    initialValues: {
-      url: '',
-      passwordId: '',
-      username: '',
-      password: '',
-      authenticatorId: '',
-      name: '',
-      secret: '',
-      digits: 6,
-      period: 30,
-      algorithm: 'SHA-1'
-    }
-  })
+  const { form } = useCreateCredential()
+
   const updateURLForm = useForm<UpdateURLForm>({
     initialValues: {
       url: ''
@@ -112,78 +84,6 @@ export default function Dashboard() {
       }
     }
   }, [user, filters])
-
-  const save = async (data: Form) => {
-    setLoading(true)
-    try {
-      let serviceId: string = data.url
-
-      if (serviceId.startsWith('new_')) {
-        const { service } = await f.post('/api/services', {
-          url: data.url.replace(/^new_/, ''),
-        }, {
-          'x-device-id': localStorage.getItem(`deviceId:${user?.id}`) || ''
-        })
-        serviceId = service.id
-      }
-
-      if (data.username || data.password) {
-        if (data.passwordId) {
-          await f.patch(`/api/services/${serviceId}/passwords/${data.passwordId}`, {
-            username: data.username,
-            password: data.password
-          }, {
-            'x-device-id': localStorage.getItem(`deviceId:${user?.id}`) || ''
-          })
-        } else {
-          await f.post(`/api/services/${serviceId}/passwords`, {
-            username: data.username,
-            password: data.password
-          }, {
-            'x-device-id': localStorage.getItem(`deviceId:${user?.id}`) || ''
-          })
-        }
-      }
-      if (data.secret) {
-        if (data.authenticatorId) {
-          await f.patch(`/api/services/${serviceId}/authenticators/${data.authenticatorId}`, {
-            name: data.name || new URL(data.url).host,
-            secret: data.secret,
-            digits: data.digits,
-            period: data.period,
-            algorithm: data.algorithm
-          }, {
-            'x-device-id': localStorage.getItem(`deviceId:${user?.id}`) || ''
-          })
-        } else {
-          await f.post(`/api/services/${serviceId}/authenticators`, {
-            name: data.name || new URL(data.url).host,
-            secret: data.secret,
-            digits: data.digits,
-            period: data.period,
-            algorithm: data.algorithm
-          }, {
-            'x-device-id': localStorage.getItem(`deviceId:${user?.id}`) || ''
-          })
-        }
-      }
-
-      fetchAll()
-      setOpened(false)
-      form.reset()
-      if (!serviceId.startsWith('new_')) {
-        setOpenService(services.find(s => s.id === serviceId))
-      }
-    } catch (error: any) {
-      showNotification({
-        title: 'Error',
-        message: error.message,
-        color: 'red',
-      })
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const updateService = async (data: UpdateURLForm) => {
     setLoadingUpdateURL(true)
@@ -267,10 +167,6 @@ export default function Dashboard() {
       })
     }
   }
-
-  const onGetDevices = useCallback(() => {
-    return toggleQR && tab === 'authenticator' && opened
-  }, [toggleQR, tab, opened])
 
   useEffect(() => {
     fetchAll()
@@ -393,105 +289,21 @@ export default function Dashboard() {
       </Col>
     </Grid>
 
-    <Drawer
-      position="right"
+    <CreateCredential
+      form={form}
       opened={opened}
-      onClose={() => setOpened(false)}
-      title={form.values.passwordId || form.values.authenticatorId ? 'Update a credential' : 'Create a credential'}>
-      <form onSubmit={form.onSubmit(save)}>
-        <Select
-          data={urlData}
-          placeholder="Select or type a URL"
-          required
-          withAsterisk
-          searchable
-          creatable
-          getCreateLabel={(query) => `Add ${query}`}
-          onCreate={(query) => {
-            const v = { label: query, value: `new_${query}` }
-            setUrlData(data => [...data, v])
-            return v
-          }}
-          {...form.getInputProps('url')} />
-        <Tabs mt="md" value={tab} onTabChange={e => setTab(e as 'password' | 'authenticator')}>
-          {form.values.passwordId || form.values.authenticatorId ? <></> : <Tabs.List>
-            <Tabs.Tab value="password">Password</Tabs.Tab>
-            <Tabs.Tab value="authenticator">Authenticator</Tabs.Tab>
-          </Tabs.List>}
-          <Tabs.Panel value="password">
-            <TextInput
-              mt="md"
-              label="Username"
-              {...form.getInputProps('username')}
-            />
-            <PasswordInput
-              mt="md"
-              label="Password"
-              {...form.getInputProps('password')}
-            />
-          </Tabs.Panel>
-          <Tabs.Panel value="authenticator">
-            <Switch
-              my="md"
-              checked={toggleQR}
-              onChange={({ target: { checked } }) => setToggleQR(checked)}
-              label={toggleQR ? 'Switch to input secret' : 'Switch to QR scanner'} />
-            {toggleQR && tab === 'authenticator' ? <ScanQr
-              onScan={val => {
-                const parsed = parseURI(val)
-                if (parsed.type === 'totp') {
-                  form.setValues({
-                    name: `${parsed.label.issuer}${
-                      parsed.label.account ? `: ${parsed.label.account}` : ''}`,
-                    secret: parsed.query.secret,
-                    digits: Number(parsed.query.digits) || 6,
-                    period: Number(parsed.query.period) || 30,
-                    algorithm: parsed.query.algorithm || 'SHA-1'
-                  })
-                  setToggleQR(false)
-                }
-              }}
-              onGetDevices={onGetDevices} /> : <>
-              <TextInput
-                mt="md"
-                label="Name"
-                {...form.getInputProps('name')}
-              />
-              <TextInput
-                mt="md"
-                label="Secret"
-                {...form.getInputProps('secret')}
-              />
-              <NumberInput
-                mt="md"
-                label="Digits"
-                {...form.getInputProps('digits')}
-              />
-              <NumberInput
-                mt="md"
-                label="Period"
-                {...form.getInputProps('period')}
-              />
-              {/* <Select
-                mt="md"
-                data={[
-                  'SHA-1', 'SHA-224', 'SHA-256', 'SHA-384',
-                  'SHA-512', 'SHA3-224', 'SHA3-256',
-                  'SHA3-384', 'SHA3-512']}
-                label="Algorithm"
-                {...form.getInputProps('algorithm')}
-              /> */}
-            </>}
-          </Tabs.Panel>
-        </Tabs>
-
-        <Group position="right" mt="lg">
-          <Button type="submit" variant="light" loading={loading}>
-            {form.values.passwordId || form.values.authenticatorId ? 'Update' : 'Create'}
-          </Button>
-        </Group>
-      </form>
-    </Drawer>
+      setOpened={setOpened}
+      urlData={urlData}
+      setUrlData={setUrlData}
+      tab={tab}
+      setTab={setTab}
+      onFinish={serviceId => {
+        fetchAll()
+        if (!serviceId.startsWith('new_')) {
+          setOpenService(services.find(s => s.id === serviceId))
+        }
+      }}
+    />
 
     <Drawer
       position="right"
