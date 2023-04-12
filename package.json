@@ -30,6 +30,7 @@
     "next": "13.3.0",
     "node-rsa": "^1.1.1",
     "nodemailer": "^6.9.1",
+    "otpauth-uri-parser": "^1.0.2",
     "qrcode": "^1.5.1",
     "random-web-token": "^2.2.1",
     "react": "18.2.0",
