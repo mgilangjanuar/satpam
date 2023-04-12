@@ -1,10 +1,10 @@
 import { UserContext } from '@/contexts/user'
 import { f } from '@/lib/fetch'
-import { ActionIcon, Box, Button, Col, Container, CopyButton, Drawer, Grid, Group, NumberInput, Paper, PasswordInput, Select, Switch, Tabs, Text, TextInput, Title, Tooltip, UnstyledButton } from '@mantine/core'
+import { ActionIcon, Box, Button, Col, Container, CopyButton, Drawer, Grid, Group, Menu, NumberInput, Paper, PasswordInput, Popover, Select, Stack, Switch, Tabs, Text, TextInput, Title, Tooltip, UnstyledButton } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { showNotification } from '@mantine/notifications'
 import { Authenticator, Password, Service } from '@prisma/client'
-import { IconCheck, IconCopy } from '@tabler/icons-react'
+import { IconCheck, IconCopy, IconDotsVertical, IconEdit, IconTrash } from '@tabler/icons-react'
 import dayjs from 'dayjs'
 import NodeRSA from 'node-rsa'
 import parseURI from 'otpauth-uri-parser'
@@ -34,7 +34,7 @@ export default function Dashboard() {
   const [opened, setOpened] = useState<boolean>(false)
   const [toggleQR, setToggleQR] = useState<boolean>(true)
   const [urlData, setUrlData] = useState<{ label: string, value: string }[]>([])
-  const [tabCreate, setTabCreate] = useState<'password' | 'authenticator'>('password')
+  const [tab, setTab] = useState<'password' | 'authenticator'>('password')
   const [camDevices, setCamDevices] = useState<MediaDeviceInfo[]>()
   const [camDeviceId, setCamDeviceId] = useState<string | null>(null)
   const [openService, setOpenService] = useState<Service>()
@@ -102,9 +102,9 @@ export default function Dashboard() {
     try {
       let serviceId: string = data.url
 
-      if (!serviceId) {
+      if (serviceId.startsWith('new_')) {
         const { service } = await f.post('/api/services', {
-          url: data.url,
+          url: data.url.replace(/^new_/, ''),
         }, {
           'x-device-id': localStorage.getItem(`deviceId:${user?.id}`) || ''
         })
@@ -167,19 +167,80 @@ export default function Dashboard() {
     }
   }
 
+  const removePass = async (id: string) => {
+    try {
+      await f.delete(`/api/services/${openService?.id}/passwords/${id}`, {
+        'x-device-id': localStorage.getItem(`deviceId:${user?.id}`) || ''
+      })
+      setPasswords(p => p.filter(p => p.id !== id))
+      showNotification({
+        title: 'Success',
+        message: 'Account removed',
+        color: 'green',
+      })
+    } catch (error: any) {
+      showNotification({
+        title: 'Error',
+        message: error.message,
+        color: 'red',
+      })
+    }
+  }
+
+  const removeAuth = async (id: string) => {
+    try {
+      await f.delete(`/api/services/${openService?.id}/authenticators/${id}`, {
+        'x-device-id': localStorage.getItem(`deviceId:${user?.id}`) || ''
+      })
+      setAuths(a => a.filter(a => a.id !== id))
+      showNotification({
+        title: 'Success',
+        message: 'Authenticator removed',
+        color: 'green',
+      })
+    } catch (error: any) {
+      showNotification({
+        title: 'Error',
+        message: error.message,
+        color: 'red',
+      })
+    }
+  }
+
+  const removeService = async () => {
+    try {
+      await f.delete(`/api/services/${openService?.id}`, {
+        'x-device-id': localStorage.getItem(`deviceId:${user?.id}`) || ''
+      })
+      setServices(s => s.filter(s => s.id !== openService?.id))
+      setOpenService(undefined)
+      showNotification({
+        title: 'Success',
+        message: 'Service removed',
+        color: 'green',
+      })
+    } catch (error: any) {
+      showNotification({
+        title: 'Error',
+        message: error.message,
+        color: 'red',
+      })
+    }
+  }
+
   useEffect(() => {
     fetchAll()
   }, [fetchAll])
 
   useEffect(() => {
-    if (toggleQR && tabCreate === 'authenticator') {
+    if (toggleQR && tab === 'authenticator') {
       window.navigator.mediaDevices.enumerateDevices().then(devices => {
         const cams = devices.filter(device => device.kind === 'videoinput' && device.deviceId)
         setCamDevices(cams)
         setCamDeviceId(cams[0]?.deviceId)
       })
     }
-  }, [toggleQR, tabCreate])
+  }, [toggleQR, tab])
 
   useEffect(() => {
     if (openService) {
@@ -275,20 +336,20 @@ export default function Dashboard() {
       title="Create a new credential">
       <form onSubmit={createForm.onSubmit(create)}>
         <Select
-          label="URL"
           data={urlData}
+          placeholder="Select or type a URL"
           required
           withAsterisk
           searchable
           creatable
           getCreateLabel={(query) => `Add ${query}`}
           onCreate={(query) => {
-            const v = { label: query, value: '' }
+            const v = { label: query, value: `new_${query}` }
             setUrlData(data => [...data, v])
             return v
           }}
           {...createForm.getInputProps('url')} />
-        <Tabs mt="md" value={tabCreate} onTabChange={e => setTabCreate(e as 'password' | 'authenticator')}>
+        <Tabs mt="md" value={tab} onTabChange={e => setTab(e as 'password' | 'authenticator')}>
           <Tabs.List>
             <Tabs.Tab value="password">Password</Tabs.Tab>
             <Tabs.Tab value="authenticator">Authenticator</Tabs.Tab>
@@ -312,13 +373,13 @@ export default function Dashboard() {
               checked={toggleQR}
               onChange={({ target: { checked } }) => setToggleQR(checked)}
               label={toggleQR ? 'Switch to input secret' : 'Switch to QR scanner'} />
-            {toggleQR && tabCreate === 'authenticator' ? <>
+            {toggleQR && tab === 'authenticator' ? <>
               {camDevices?.length ? <Select
                 my="md"
                 data={camDevices.map(c => ({ value: c.deviceId, label: c.label }))}
                 value={camDeviceId}
                 onChange={setCamDeviceId} /> : <></>}
-              {tabCreate === 'authenticator' ? <QrReader
+              {tab === 'authenticator' ? <QrReader
                 constraints={{ video: camDeviceId ? { deviceId: camDeviceId } : { facingMode: { ideal: 'environment' } } }}
                 style={{ width: '100%'}}
                 onError={e => showNotification({
@@ -393,99 +454,201 @@ export default function Dashboard() {
       opened={Boolean(openService)}
       onClose={() => setOpenService(undefined)}
       title={openService?.url.split('://')[1].replace(/^\/|\/$/g, '')}>
-      <form onSubmit={updateServiceForm.onSubmit(updateService)}>
-        <Group align="end">
-          <TextInput
-            style={{ flexGrow: 1 }}
-            placeholder="https://example.com"
-            type="url"
-            {...updateServiceForm.getInputProps('url')}
-          />
-          <ActionIcon
-            size="lg"
-            type="submit"
-            color="teal"
-            variant="subtle"
-            loading={loadingUpdateService}>
-            <IconCheck size={18} />
-          </ActionIcon>
-        </Group>
-      </form>
+      <Stack mih="calc(100vh - 70px)">
+        <form onSubmit={updateServiceForm.onSubmit(updateService)}>
+          <Group align="end">
+            <TextInput
+              style={{ flexGrow: 1 }}
+              placeholder="https://example.com"
+              type="url"
+              {...updateServiceForm.getInputProps('url')}
+            />
+            <ActionIcon
+              size="lg"
+              type="submit"
+              color="teal"
+              variant="subtle"
+              loading={loadingUpdateService}>
+              <IconCheck size={18} />
+            </ActionIcon>
+          </Group>
+        </form>
 
-      <Tabs mt="md" defaultValue="password">
-        <Tabs.List>
-          <Tabs.Tab value="password">Password</Tabs.Tab>
-          <Tabs.Tab value="authenticator">Authenticator</Tabs.Tab>
-        </Tabs.List>
-        <Tabs.Panel value="password">
-          {passwords.map(password => <Paper key={password.id} p="md" mt="md" withBorder>
-            <Box>
-              <Text component="strong" size="sm">
-                Username
-              </Text>
-              <Group>
-                <Text>{password.username}</Text>
-                <CopyButton value={password.username} timeout={2000}>
-                  {({ copied, copy }) => (
-                    <Tooltip label={copied ? 'Copied' : 'Copy'} withArrow position="right">
-                      <ActionIcon color={copied ? 'teal' : 'gray'} onClick={copy}>
-                        {copied ? <IconCheck size="1rem" /> : <IconCopy size="1rem" />}
+        <Tabs value={tab} onTabChange={t => setTab(t as 'password' | 'authenticator')} style={{ flexGrow: 1 }}>
+          <Tabs.List>
+            <Tabs.Tab value="password">Password</Tabs.Tab>
+            <Tabs.Tab value="authenticator">Authenticator</Tabs.Tab>
+          </Tabs.List>
+          <Tabs.Panel value="password">
+            {passwords.map(password => <Paper key={password.id} p="md" mt="md" withBorder>
+              <Box>
+                <Group position="apart" align="start">
+                  <Text component="strong" size="sm" lineClamp={1}>
+                    Username
+                  </Text>
+                  <Menu withArrow closeOnItemClick={false} position="bottom-end">
+                    <Menu.Target>
+                      <ActionIcon size="sm">
+                        <IconDotsVertical size={16} />
                       </ActionIcon>
-                    </Tooltip>
-                  )}
-                </CopyButton>
-              </Group>
-            </Box>
-            <Box mt="md">
-              <Text component="strong" size="sm">
-                Password
-              </Text>
-              <Group>
-                <PasswordInput mt="xs" readOnly value={password.password} style={{ flexGrow: 1 }} />
-                <CopyButton value={password.password} timeout={2000}>
-                  {({ copied, copy }) => (
-                    <Tooltip label={copied ? 'Copied' : 'Copy'} withArrow position="right">
-                      <ActionIcon color={copied ? 'teal' : 'gray'} onClick={copy}>
-                        {copied ? <IconCheck size="1rem" /> : <IconCopy size="1rem" />}
+                    </Menu.Target>
+                    <Menu.Dropdown>
+                      <Menu.Item closeMenuOnClick>
+                        <Group>
+                          <IconEdit size={16} />
+                          <Text>
+                            Update
+                          </Text>
+                        </Group>
+                      </Menu.Item>
+                      <Popover width={280} withArrow position="bottom-end">
+                        <Popover.Target>
+                          <Menu.Item color="red">
+                            <Group>
+                              <IconTrash size={16} />
+                              <Text>Remove</Text>
+                            </Group>
+                          </Menu.Item>
+                        </Popover.Target>
+                        <Popover.Dropdown>
+                          <Text color="dimmed">
+                            Are you sure you want to remove this account?
+                          </Text>
+                          <Group mt="sm" position="right">
+                            <Button size="sm" color="red" onClick={() => removePass(password.id)}>
+                              Yes, I&apos;m confirm
+                            </Button>
+                          </Group>
+                        </Popover.Dropdown>
+                      </Popover>
+                    </Menu.Dropdown>
+                  </Menu>
+                </Group>
+                <Group>
+                  <Text>{password.username}</Text>
+                  <CopyButton value={password.username} timeout={2000}>
+                    {({ copied, copy }) => (
+                      <Tooltip label={copied ? 'Copied' : 'Copy'} withArrow position="right">
+                        <ActionIcon color={copied ? 'teal' : 'gray'} onClick={copy}>
+                          {copied ? <IconCheck size="1rem" /> : <IconCopy size="1rem" />}
+                        </ActionIcon>
+                      </Tooltip>
+                    )}
+                  </CopyButton>
+                </Group>
+              </Box>
+              <Box mt="md">
+                <Text component="strong" size="sm">
+                  Password
+                </Text>
+                <Group>
+                  <PasswordInput mt="xs" readOnly value={password.password} style={{ flexGrow: 1 }} />
+                  <CopyButton value={password.password} timeout={2000}>
+                    {({ copied, copy }) => (
+                      <Tooltip label={copied ? 'Copied' : 'Copy'} withArrow position="right">
+                        <ActionIcon color={copied ? 'teal' : 'gray'} onClick={copy}>
+                          {copied ? <IconCheck size="1rem" /> : <IconCopy size="1rem" />}
+                        </ActionIcon>
+                      </Tooltip>
+                    )}
+                  </CopyButton>
+                </Group>
+              </Box>
+            </Paper>)}
+          </Tabs.Panel>
+          <Tabs.Panel value="authenticator">
+            {auths.map(auth => <Paper key={auth.id} p="md" mt="md" withBorder>
+              <Box>
+                <Group position="apart" align="start">
+                  <Text component="strong" size="sm" lineClamp={1}>
+                    Name
+                  </Text>
+                  <Menu withArrow closeOnItemClick={false} position="bottom-end">
+                    <Menu.Target>
+                      <ActionIcon size="sm">
+                        <IconDotsVertical size={16} />
                       </ActionIcon>
-                    </Tooltip>
-                  )}
-                </CopyButton>
+                    </Menu.Target>
+                    <Menu.Dropdown>
+                      <Menu.Item closeMenuOnClick>
+                        <Group>
+                          <IconEdit size={16} />
+                          <Text>
+                            Update
+                          </Text>
+                        </Group>
+                      </Menu.Item>
+                      <Popover width={280} withArrow position="bottom-end">
+                        <Popover.Target>
+                          <Menu.Item color="red">
+                            <Group>
+                              <IconTrash size={16} />
+                              <Text>Remove</Text>
+                            </Group>
+                          </Menu.Item>
+                        </Popover.Target>
+                        <Popover.Dropdown>
+                          <Text color="dimmed">
+                            Are you sure you want to remove this authenticator?
+                          </Text>
+                          <Group mt="sm" position="right">
+                            <Button size="sm" color="red" onClick={() => removeAuth(auth.id)}>
+                              Yes, I&apos;m confirm
+                            </Button>
+                          </Group>
+                        </Popover.Dropdown>
+                      </Popover>
+                    </Menu.Dropdown>
+                  </Menu>
+                </Group>
+                <Text>{auth.name}</Text>
+              </Box>
+              <Box mt="md">
+                <Text component="strong" size="sm">
+                  Token
+                </Text>
+                <Group>
+                  <Text>{tokens?.find(t => t.id === auth.id)?.token}</Text>
+                  <CopyButton value={tokens?.find(t => t.id === auth.id)?.token || ''} timeout={2000}>
+                    {({ copied, copy }) => (
+                      <Tooltip label={copied ? 'Copied' : 'Copy'} withArrow position="right">
+                        <ActionIcon color={copied ? 'teal' : 'gray'} onClick={copy}>
+                          {copied ? <IconCheck size="1rem" /> : <IconCopy size="1rem" />}
+                        </ActionIcon>
+                      </Tooltip>
+                    )}
+                  </CopyButton>
+                </Group>
+                <Text color="dimmed" size="sm">
+                  expires in {tokens?.find(t => t.id === auth.id)?.remaining}s
+                </Text>
+              </Box>
+            </Paper>)}
+          </Tabs.Panel>
+        </Tabs>
+        <Group position="right">
+          <Button variant="light">
+            Add {tab === 'password' ? 'a password' : 'an authenticator'}
+          </Button>
+          <Popover width={280} withArrow position="top-end">
+            <Popover.Target>
+              <Button variant="light" color="red">
+                Remove all
+              </Button>
+            </Popover.Target>
+            <Popover.Dropdown>
+              <Text color="dimmed">
+                Are you sure you want to remove all passwords and authenticators?
+              </Text>
+              <Group mt="sm" position="right">
+                <Button size="sm" color="red" onClick={removeService}>
+                  Yes, I&apos;m confirm
+                </Button>
               </Group>
-            </Box>
-          </Paper>)}
-        </Tabs.Panel>
-        <Tabs.Panel value="authenticator">
-          {auths.map(auth => <Paper key={auth.id} p="md" mt="md" withBorder>
-            <Box>
-              <Text component="strong" size="sm">
-                Name
-              </Text>
-              <Text>{auth.name}</Text>
-            </Box>
-            <Box mt="md">
-              <Text component="strong" size="sm">
-                Token
-              </Text>
-              <Group>
-                <Text>{tokens?.find(t => t.id === auth.id)?.token}</Text>
-                <CopyButton value={tokens?.find(t => t.id === auth.id)?.token || ''} timeout={2000}>
-                  {({ copied, copy }) => (
-                    <Tooltip label={copied ? 'Copied' : 'Copy'} withArrow position="right">
-                      <ActionIcon color={copied ? 'teal' : 'gray'} onClick={copy}>
-                        {copied ? <IconCheck size="1rem" /> : <IconCopy size="1rem" />}
-                      </ActionIcon>
-                    </Tooltip>
-                  )}
-                </CopyButton>
-              </Group>
-              <Text color="dimmed" size="sm">
-                expires in {tokens?.find(t => t.id === auth.id)?.remaining}s
-              </Text>
-            </Box>
-          </Paper>)}
-        </Tabs.Panel>
-      </Tabs>
+            </Popover.Dropdown>
+          </Popover>
+        </Group>
+      </Stack>
     </Drawer>
   </Container>
 }

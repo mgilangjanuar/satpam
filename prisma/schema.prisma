@@ -36,7 +36,7 @@ model Service {
   userId          String   @map("user_id")
   createdAt       DateTime @default(now())  @db.Timestamptz(3) @map("created_at")
   updatedAt       DateTime @updatedAt       @db.Timestamptz(3) @map("updated_at")
-  user            User     @relation(fields: [userId], references: [id])
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   passwords       Password[]
   authenticators  Authenticator[]
 
@@ -50,7 +50,7 @@ model Password {
   serviceId String   @map("service_id")
   createdAt DateTime @default(now())  @db.Timestamptz(3) @map("created_at")
   updatedAt DateTime @updatedAt       @db.Timestamptz(3) @map("updated_at")
-  service   Service  @relation(fields: [serviceId], references: [id])
+  service   Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("passwords")
 }
@@ -65,7 +65,7 @@ model Authenticator {
   serviceId String   @map("service_id")
   createdAt DateTime @default(now())  @db.Timestamptz(3) @map("created_at")
   updatedAt DateTime @updatedAt       @db.Timestamptz(3) @map("updated_at")
-  service   Service  @relation(fields: [serviceId], references: [id])
+  service   Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("authenticators")
 }
@@ -76,7 +76,7 @@ model Device {
   userId    String   @map("user_id")
   createdAt DateTime @default(now())  @db.Timestamptz(3) @map("created_at")
   updatedAt DateTime @updatedAt       @db.Timestamptz(3) @map("updated_at")
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("devices")
 }

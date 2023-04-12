@@ -207,7 +207,7 @@ export default function Dashboard() {
               </Menu.Dropdown>
             </Menu>
           </Group>
-          <Text color="dimmed" mt="xs">
+          <Text color="dimmed" mt="xs" size="md">
             Added at {dayjs(device.createdAt).format('MMMM D, YYYY H:mm')}
           </Text>
         </Paper>)}
