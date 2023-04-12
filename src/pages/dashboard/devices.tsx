@@ -1,6 +1,6 @@
 import { UserContext } from '@/contexts/user'
 import { f } from '@/lib/fetch'
-import { ActionIcon, Badge, Box, Button, Col, Container, Drawer, Grid, Group, Image, List, MediaQuery, Menu, Modal, Paper, Popover, Select, Text, TextInput, Title } from '@mantine/core'
+import { ActionIcon, Badge, Box, Button, Col, Container, Drawer, Grid, Group, Image, List, MediaQuery, Menu, Paper, Popover, Select, Text, TextInput, Title } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { showNotification } from '@mantine/notifications'
 import { Device } from '@prisma/client'
@@ -217,7 +217,8 @@ export default function Dashboard() {
     <Drawer
       opened={Boolean(drawerOpened)}
       onClose={() => setDrawerOpened(undefined)}
-      position="right" size="md"
+      position="right"
+      size="md"
       title="Update Device">
       <form onSubmit={form.onSubmit(update)}>
         <TextInput
@@ -234,8 +235,9 @@ export default function Dashboard() {
       </form>
     </Drawer>
 
-    <Modal
+    <Drawer
       size="md"
+      position="right"
       opened={Boolean(modalOpened)}
       onClose={() => setModalOpened(undefined)}
       title={`Connect ${modalOpened === 'qrcode' ? 'as Host' : 'to Host'}`}>
@@ -352,6 +354,6 @@ export default function Dashboard() {
           </List>
         </Box>
       </> : <></>}
-    </Modal>
+    </Drawer>
   </Container>
 }

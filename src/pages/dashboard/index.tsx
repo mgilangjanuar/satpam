@@ -1,6 +1,6 @@
 import { UserContext } from '@/contexts/user'
 import { f } from '@/lib/fetch'
-import { Button, Col, Container, Grid, Group, Modal, NumberInput, PasswordInput, Select, Switch, Tabs, TextInput, Title } from '@mantine/core'
+import { Button, Col, Container, Drawer, Grid, Group, Modal, NumberInput, PasswordInput, Select, Switch, Tabs, TextInput, Title } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { showNotification } from '@mantine/notifications'
 import { Service } from '@prisma/client'
@@ -30,6 +30,9 @@ export default function Dashboard() {
   const [tabCreate, setTabCreate] = useState<'password' | 'authenticator'>('password')
   const [camDevices, setCamDevices] = useState<MediaDeviceInfo[]>()
   const [camDeviceId, setCamDeviceId] = useState<string | null>(null)
+  const [openService, setOpenService] = useState<Service>()
+  const [totp, setTotp] = useState<string>()
+  const [remaining, setRemaining] = useState<number>(0)
   const [filters, setFilters] = useState<{
     skip: number,
     take: number,
@@ -138,6 +141,12 @@ export default function Dashboard() {
     }
   }, [toggleQR])
 
+  useEffect(() => {
+    if (openService) {
+
+    }
+  }, [openService])
+
   return <Container fluid>
     <Grid>
       <Col span={12} lg={6} md={8} sm={10}>
@@ -152,7 +161,8 @@ export default function Dashboard() {
       </Col>
     </Grid>
 
-    <Modal
+    <Drawer
+      position="right"
       opened={opened}
       onClose={() => setOpened(false)}
       title="Create a new credential">
@@ -269,6 +279,13 @@ export default function Dashboard() {
           </Button>
         </Group>
       </form>
-    </Modal>
+    </Drawer>
+
+    <Drawer
+      position="right"
+      opened={Boolean(openService)}
+      onClose={() => setOpenService(undefined)}
+      title={openService?.url}>
+    </Drawer>
   </Container>
 }
