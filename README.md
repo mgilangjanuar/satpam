@@ -54,14 +54,14 @@ Satpam is a secure and trusted password manager and 2FA. Built with [Next.js](ht
 
 | Name | Description | Default | Required |
 | --- | --- | --- | --- |
-| `DATABASE_URL` | Database URL | - | Yes |
-| `SMTP_URL` | SMTP URL | - | Yes |
-| `EMAIL_FROM` | Email sender | - | Yes |
-| `BASE_URL` | Base URL | - | Yes |
-| `SECRET_KEY` | Secret key | - | Yes |
-| `ENCRYPT_KEY` | Encryption key | - | Yes |
-| `SALT` | Salt | - | Yes |
-| `DIGEST` | Digest algorithm | - | Yes |
+| `DATABASE_URL` | Database URL. Eg, `postgresql://localhost:5432/satpam?schema=public`. | - | Yes |
+| `SMTP_URL` | SMTP URL. Eg, `smtp://username:password@smtp.gmail.com:587`. | - | Yes |
+| `EMAIL_FROM` | Email sender. | - | Yes |
+| `BASE_URL` | Base URL. | - | Yes |
+| `SECRET_KEY` | Secret key. Random string. | - | Yes |
+| `ENCRYPT_KEY` | Encryption key. Random string. | - | Yes |
+| `SALT` | Salt. Random string. | - | Yes |
+| `DIGEST` | Digest algorithm. The options: [string-crypto](https://github.com/simplyhexagonal/string-crypto#v2-new-features). | - | Yes |
 
 ## License
 
