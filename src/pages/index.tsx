@@ -1,6 +1,8 @@
-import { Anchor, Box, Container, Footer, Group, Image, Paper, Stack, Text, Title, UnstyledButton, createStyles, keyframes, useMantineColorScheme } from '@mantine/core'
-import { IconBrandGithub, IconChevronDown } from '@tabler/icons-react'
+import { UserContext } from '@/contexts/user'
+import { Anchor, Box, Button, Footer, Group, Image, Paper, Stack, Text, Title, UnstyledButton, createStyles, keyframes, useMantineColorScheme } from '@mantine/core'
+import { IconBrandGithub, IconChevronsDown } from '@tabler/icons-react'
 import Link from 'next/link'
+import { useContext } from 'react'
 
 const useStyle = createStyles({
   'downArrow': {
@@ -14,18 +16,38 @@ const useStyle = createStyles({
 })
 
 export default function Home() {
+  const { user } = useContext(UserContext)
   const { colorScheme } = useMantineColorScheme()
   const { classes } = useStyle()
 
   return <Box>
     <Stack mih="80vh" align="center" justify="center">
-      <Box maw={720} w="100%">
+      <Box maw={600} w="100%">
         <Title ta="center" fw="normal">
           A Secure Authenticator and Trusted Password Manager
         </Title>
       </Box>
+      <Box my="xl">
+        {user ? <Button
+          component={Link}
+          href="/dashboard"
+          size="md"
+          radius="md"
+          variant="light"
+          px={48}>
+          Go to Dashboard
+        </Button> : <Button
+          component={Link}
+          href="/auth/login"
+          size="md"
+          radius="md"
+          variant="light"
+          px={48}>
+          Login
+        </Button>}
+      </Box>
       <Box mt="xl" className={classes.downArrow}>
-        <IconChevronDown size={36} />
+        <IconChevronsDown size={28} />
       </Box>
     </Stack>
     <Stack mih="80vh" align="center" justify="center">
