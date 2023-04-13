@@ -48,8 +48,8 @@ export default function ScanQr({ onScan, onGetDevices, onNoDevices }: ScanQrProp
         if (data?.text) {
           try {
             onScan(data.text)
-          } catch (error) {
-            // ignore
+          } catch (error: any) {
+            alert(error.message)
           }
         }
       }} />
