@@ -55,10 +55,10 @@ export default wrapper(async (
       'authorized_token', sign(
         authData, process.env.SECRET_KEY as string
       ), {
-        maxAge: 60 * 60 * 15, // 15 hours
+        maxAge: 60 * 60 * 4, // 4 hours
         httpOnly: true,
         path: '/',
-        expires: new Date(Date.now() + 60 * 60 * 15 * 1000), // 15 hours
+        expires: new Date(Date.now() + 60 * 60 * 4 * 1000), // 4 hours
       }
     ))
     return res.end('{}')
