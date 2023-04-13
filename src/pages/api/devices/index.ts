@@ -29,11 +29,11 @@ export default authorization(wrapper(async (
 
     // build pagination
     let skip = 0
-    let take = 10
+    let take = undefined
     if (_skip || _take) {
       const { _skip: s, _take: t } = parseQuery(req.query, ['_skip', '_take'])
       skip = Number(s) || 0
-      take = Number(t) || 10
+      take = Number(t) || undefined
     }
 
     const devices = await prisma.device.findMany({
