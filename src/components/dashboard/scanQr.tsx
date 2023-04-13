@@ -18,7 +18,7 @@ export default function ScanQr({ onScan, onGetDevices, onNoDevices }: ScanQrProp
       window.navigator.mediaDevices.enumerateDevices().then(devices => {
         const cams = devices.filter(device => device.kind === 'videoinput' && device.deviceId)
         setCamDevices(cams)
-        setCamDeviceId(cams[0]?.deviceId)
+        // setCamDeviceId(cams[0]?.deviceId)
         if (!cams.length) {
           onNoDevices?.()
         }
@@ -28,6 +28,8 @@ export default function ScanQr({ onScan, onGetDevices, onNoDevices }: ScanQrProp
 
   return <>
     {camDevices?.length ? <Select
+      clearable
+      placeholder="Select camera"
       mb="md"
       data={camDevices.map(c => ({ value: c.deviceId, label: c.label }))}
       value={camDeviceId}
