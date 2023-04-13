@@ -165,6 +165,17 @@ export default function CreateCredential({ form, opened, setOpened, urlData, set
             onScan={val => {
               const parsed = parseURI(val)
               if (parsed.type === 'totp') {
+                const mappedAlgorithm = {
+                  'sha1': 'SHA-1',
+                  'sha224': 'SHA-224',
+                  'sha256': 'SHA-256',
+                  'sha384': 'SHA-384',
+                  'sha512': 'SHA-512',
+                  'sha3-224': 'SHA3-224',
+                  'sha3-256': 'SHA3-256',
+                  'sha3-384': 'SHA3-384',
+                  'sha3-512': 'SHA3-512',
+                }
                 form.setValues({
                   name: `${parsed.label.issuer ?? ''}${
                     parsed.label.issuer && parsed.label.account ? ': ' : ''}${
@@ -172,7 +183,9 @@ export default function CreateCredential({ form, opened, setOpened, urlData, set
                   secret: parsed.query.secret,
                   digits: Number(parsed.query.digits) || 6,
                   period: Number(parsed.query.period) || 30,
-                  algorithm: parsed.query.algorithm || 'SHA-1'
+                  algorithm: parsed.query.algorithm ? Object.entries(mappedAlgorithm).find(([k]) => {
+                    return new RegExp(k, 'gi').test(parsed.query.algorithm)
+                  })?.[1] : 'SHA-1'
                 })
                 setToggleQR(false)
               }
