@@ -166,8 +166,9 @@ export default function CreateCredential({ form, opened, setOpened, urlData, set
               const parsed = parseURI(val)
               if (parsed.type === 'totp') {
                 form.setValues({
-                  name: `${parsed.label.issuer}${
-                    parsed.label.account ? `: ${parsed.label.account}` : ''}`,
+                  name: `${parsed.label.issuer ?? ''}${
+                    parsed.label.issuer && parsed.label.account ? ': ' : ''}${
+                    parsed.label.account ?? ''}`,
                   secret: parsed.query.secret,
                   digits: Number(parsed.query.digits) || 6,
                   period: Number(parsed.query.period) || 30,

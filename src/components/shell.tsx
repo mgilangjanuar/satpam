@@ -58,6 +58,7 @@ function NavbarButtonLink(props: UnstyledButtonProps & LinkProps & { icon?: Reac
     {props.icon ? <Group spacing="sm">
       <ThemeIcon
         variant="light"
+        radius="md"
         color={isActive ? "blue" : "gray"}>
         {props.icon}
       </ThemeIcon>
