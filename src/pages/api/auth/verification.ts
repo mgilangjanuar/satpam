@@ -43,6 +43,10 @@ export default wrapper(async (
         return res.status(400).json({ error: 'Missing newPassword' })
       }
 
+      if (newPassword.length < 16) {
+        return res.status(400).json({ error: 'Password must be at least 16 characters' })
+      }
+
       const user = await prisma.user.findFirst({
         select: {
           id: true

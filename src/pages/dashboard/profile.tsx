@@ -191,6 +191,7 @@ export default function Profile() {
               <PasswordInput
                 mt="md"
                 label="New Password"
+                minLength={16}
                 required
                 withAsterisk
                 {...formPassword.getInputProps('newPassword')}
@@ -198,6 +199,7 @@ export default function Profile() {
               <PasswordInput
                 mt="md"
                 label="New Password Confirmation"
+                minLength={16}
                 required
                 withAsterisk
                 {...formPassword.getInputProps('confirmNewPassword')}

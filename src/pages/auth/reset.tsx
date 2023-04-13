@@ -53,6 +53,7 @@ export default function Reset() {
       <form onSubmit={form.onSubmit(reset)}>
         <PasswordInput
           label="New password"
+          minLength={16}
           required
           withAsterisk
           {...form.getInputProps('newPassword')} />

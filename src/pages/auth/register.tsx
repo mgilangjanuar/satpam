@@ -118,6 +118,7 @@ export default function Register() {
           <PasswordInput
             mt="md"
             label="Password"
+            minLength={16}
             required
             withAsterisk
             {...form.getInputProps('password')} />

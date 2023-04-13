@@ -24,6 +24,10 @@ export default wrapper(async (
       return res.status(400).json({ error: 'Missing name or email or password' })
     }
 
+    if (password.length < 16) {
+      return res.status(400).json({ error: 'Password must be at least 16 characters' })
+    }
+
     if (await prisma.user.count({ where: { email } })) {
       return res.status(400).json({ error: 'Email already in use' })
     }
