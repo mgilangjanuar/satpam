@@ -177,7 +177,11 @@ export default function DetailsCredential({ formCreate, form, setOpenedCreate: s
   return <Drawer
     position="right"
     opened={Boolean(openedService)}
-    onClose={() => setOpenedService(undefined)}
+    onClose={() => {
+      setAuths([])
+      setPasswords([])
+      setOpenedService(undefined)
+    }}
     title={openedService?.url.split('://')[1].replace(/^\/|\/$/g, '')}>
     <Stack mih="calc(100vh - 70px)">
       <form onSubmit={form.onSubmit(updateService)}>
