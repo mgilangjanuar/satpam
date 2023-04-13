@@ -1,10 +1,15 @@
 import { MenuItem } from '@/components/shell'
 import { UserContextAttributes } from '@/contexts/user'
 import { ColorScheme } from '@mantine/core'
+import { useLocalStorage } from '@mantine/hooks'
 import { useState } from 'react'
 
 export function useSetupStates() {
-  const [colorScheme, setColorScheme] = useState<ColorScheme>('light')
+  const [colorScheme, setColorScheme] = useLocalStorage<ColorScheme>({
+    key: 'colorScheme',
+    defaultValue: 'light',
+    getInitialValueInEffect: true,
+  })
 
   const [user, setUser] = useState<UserContextAttributes | null>(null)
   const [completeGetUser, setCompleteGetUser] = useState(false)
