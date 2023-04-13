@@ -55,7 +55,7 @@ export default function Dashboard() {
           'x-device-id': localStorage.getItem(`deviceId:${user?.id}`) || ''
         })
         setServices(services)
-        if (filters.skip === 0 && filters.take === 0) {
+        if (filters.skip === 0 && filters.take === 0 && !Object.keys(filters.search)?.length) {
           setUrlData((services as Service[]).map(s => ({ label: s.url, value: s.id })))
         }
       } catch (error: any) {
