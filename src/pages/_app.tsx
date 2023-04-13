@@ -33,10 +33,10 @@ export default function App({ Component, pageProps }: AppProps) {
 
   return <>
     <Head>
-      <title>Satpam | A secure and trusted password manager and 2FA</title>
+      <title>Satpam | A Secure Authenticator and Trusted Password Manager</title>
       <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, maximum-scale=1, user-scalable=no" />
       <link rel="icon" href="/favicon.ico" />
-      <meta name="description" content="Satpam is a secure and trusted password manager and 2FA" />
+      <meta name="description" content="Satpam is a secure authenticator and trusted password manager" />
     </Head>
 
     <ColorSchemeProvider colorScheme={colorScheme} toggleColorScheme={val => setColorScheme(val || (colorScheme === 'dark' ? 'light' : 'dark'))}>

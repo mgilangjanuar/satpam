@@ -1,6 +1,6 @@
 # Satpam
 
-Satpam is a secure and trusted password manager and 2FA. Built with [Next.js](https://nextjs.org/), [Prisma](https://www.prisma.io/), and [Mantine UI](https://mantine.dev/).
+Satpam is a secure authenticator and trusted password manager. Built with [Next.js](https://nextjs.org/), [Prisma](https://www.prisma.io/), and [Mantine UI](https://mantine.dev/).
 
 ## Prerequisites
 
