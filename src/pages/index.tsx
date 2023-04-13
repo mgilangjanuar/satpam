@@ -17,7 +17,7 @@ export default function Home() {
   const { colorScheme } = useMantineColorScheme()
   const { classes } = useStyle()
 
-  return <Container fluid>
+  return <Box>
     <Stack mih="80vh" align="center" justify="center">
       <Box maw={720} w="100%">
         <Title ta="center" fw="normal">
@@ -25,7 +25,7 @@ export default function Home() {
         </Title>
       </Box>
       <Box mt="xl" className={classes.downArrow}>
-        <IconChevronDown size={48} />
+        <IconChevronDown size={36} />
       </Box>
     </Stack>
     <Stack mih="80vh" align="center" justify="center">
@@ -109,5 +109,5 @@ export default function Home() {
         </Text>
       </Stack>
     </Footer>
-  </Container>
+  </Box>
 }
