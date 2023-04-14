@@ -70,7 +70,6 @@ function NavbarButtonLink(props: UnstyledButtonProps & LinkProps & { icon?: Reac
 export default function Shell({ children, menu, menuHeader }: { children: React.ReactNode, menu?: MenuItem[], menuHeader?: MenuItem[] }) {
   const [opened, setOpened] = useState(false)
   const { colorScheme, toggleColorScheme } = useMantineColorScheme()
-  const location = useRouter()
 
   return <AppShell
     navbarOffsetBreakpoint="sm"
