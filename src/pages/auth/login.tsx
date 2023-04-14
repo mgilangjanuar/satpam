@@ -1,6 +1,6 @@
 import { UserContext } from '@/contexts/user'
 import { f } from '@/lib/fetch'
-import { Button, Divider, Group, Paper, PasswordInput, Stack, Text, TextInput, Title, rem } from '@mantine/core'
+import { Button, Divider, Group, Paper, PasswordInput, Stack, Text, TextInput, Title, UnstyledButton, rem } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { showNotification } from '@mantine/notifications'
 import Link from 'next/link'
@@ -66,19 +66,19 @@ export default function Login() {
           withAsterisk
           {...form.getInputProps('password')} />
         <Group position="apart" mt="md">
-          <Link href="/auth/forgot">
-            Forgot password?
-          </Link>
+          <UnstyledButton component={Link} href="/auth/forgot">
+            <Text color="blue">Forgot password?</Text>
+          </UnstyledButton>
           <Button type="submit" loading={loading}>
             Login
           </Button>
         </Group>
         <Divider my="lg" label="Or" labelPosition="center" />
         <Group>
-          <Text>Don&apos;t have an account?</Text>
-          <Link href="/auth/register">
-            Register
-          </Link>
+          <Text color="dimmed">Don&apos;t have an account?</Text>
+          <UnstyledButton component={Link} href="/auth/register">
+            <Text color="blue">Register</Text>
+          </UnstyledButton>
         </Group>
       </form>
     </Paper>

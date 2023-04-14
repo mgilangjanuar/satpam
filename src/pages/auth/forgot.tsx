@@ -1,5 +1,5 @@
 import { f } from '@/lib/fetch'
-import { Button, Group, Loader, Paper, Stack, Text, TextInput, Title, rem } from '@mantine/core'
+import { Button, Group, Loader, Paper, Stack, Text, TextInput, Title, UnstyledButton, rem, useMantineColorScheme } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { showNotification } from '@mantine/notifications'
 import Link from 'next/link'
@@ -10,6 +10,7 @@ interface ForgotForm {
 }
 
 export default function Forgot() {
+  const { colorScheme } = useMantineColorScheme()
   const [loading, setLoading] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [timer, setTimer] = useState(0)
@@ -86,8 +87,10 @@ export default function Forgot() {
             disabled={timer > 0}
             onClick={resend}
             loading={loading}
-            leftIcon={timer > 0 ? <Loader variant="dots" /> : null}>
-            Resend{timer > 0 ? ` in ${timer} seconds` : ''}
+            leftIcon={timer > 0 ? <Loader variant="dots" color={colorScheme === 'light' ? 'gray' : 'dark'} /> : null}>
+            <Text color="dimmed">
+              Resend{timer > 0 ? ` in ${timer} seconds` : ''}
+            </Text>
           </Button>
         </Group>
       </> : <>
@@ -103,9 +106,9 @@ export default function Forgot() {
             withAsterisk
             {...form.getInputProps('email')} />
           <Group position="apart" mt="md">
-            <Link href="/auth/login">
-              Back to login
-            </Link>
+            <UnstyledButton component={Link} href="/auth/login">
+              <Text color="blue">Back to login</Text>
+            </UnstyledButton>
             <Button type="submit" loading={loading}>
               Reset
             </Button>
