@@ -8,7 +8,7 @@ import { ActionIcon, Button, Col, Container, Grid, Group, Paper, Text, TextInput
 import { useForm } from '@mantine/form'
 import { showNotification } from '@mantine/notifications'
 import { Service } from '@prisma/client'
-import { IconSearch } from '@tabler/icons-react'
+import { IconSearch, IconX } from '@tabler/icons-react'
 import dayjs from 'dayjs'
 import { useCallback, useContext, useEffect, useState } from 'react'
 
@@ -71,6 +71,16 @@ export default function Dashboard() {
     }
   }, [user, filters])
 
+  const search = ({ urlContains }: { urlContains?: string }) => {
+    setLoadingSearch(true)
+    setFilters(f => ({ ...f, search: {
+      ...f.search, url: urlContains ? {
+        contains: urlContains,
+        mode: 'insensitive'
+      } : undefined
+    } }))
+  }
+
   useEffect(() => {
     fetchAll()
   }, [fetchAll])
@@ -90,22 +100,27 @@ export default function Dashboard() {
           </Button>
         </Group>
 
-        <form onSubmit={searchForm.onSubmit(({ urlContains }) => {
-          setLoadingSearch(true)
-          setFilters(f => ({ ...f, search: {
-            ...f.search, url: {
-              contains: urlContains,
-              mode: 'insensitive'
-            }
-          } }))
-        })}>
+        <form onSubmit={searchForm.onSubmit(search)}>
           <TextInput
             tabIndex={1}
             autoFocus
             mt="md"
             placeholder="Search..."
-            rightSection={<ActionIcon loading={loadingSearch}>
+            rightSection={!filters.search.url ? <ActionIcon
+              loading={loadingSearch}
+              onClick={() => search({
+                urlContains: searchForm.values.urlContains
+              })}>
               <IconSearch size={16} />
+            </ActionIcon> : <ActionIcon
+              loading={loadingSearch}
+              onClick={() => {
+                searchForm.reset()
+                search({
+                  urlContains: undefined
+                })
+              }}>
+              <IconX size={16} />
             </ActionIcon>}
             {...searchForm.getInputProps('urlContains')} />
         </form>

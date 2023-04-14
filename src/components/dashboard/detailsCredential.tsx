@@ -209,6 +209,9 @@ export default function DetailsCredential({ formCreate, form, setOpenedCreate: s
           <Tabs.Tab value="authenticator">Authenticator</Tabs.Tab>
         </Tabs.List>
         <Tabs.Panel value="password">
+          {!passwords.length ? <Box mt="md" p="md">
+            <Text size="sm" ta="center" color="dimmed">No passwords</Text>
+          </Box> : <></>}
           {passwords.map(password => <Paper key={password.id} p="md" mt="md" withBorder>
             <Box>
               <Group position="apart" align="start">
@@ -296,6 +299,9 @@ export default function DetailsCredential({ formCreate, form, setOpenedCreate: s
           </Paper>)}
         </Tabs.Panel>
         <Tabs.Panel value="authenticator">
+          {!auths.length ? <Box mt="md" p="md">
+            <Text size="sm" ta="center" color="dimmed">No authenticators</Text>
+          </Box> : <></>}
           {auths.map(auth => <Paper key={auth.id} p="md" mt="md" withBorder>
             <Box>
               <Group position="apart" align="start">
