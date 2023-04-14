@@ -20,6 +20,10 @@ export default authorization(wrapper(async (
       return res.status(400).json({ error: 'Missing email' })
     }
 
+    if (email === req.user?.email) {
+      return res.status(400).json({ error: 'Email already in use' })
+    }
+
     const token = genSync('extra', 72)
     try {
       await prisma.user.update({
